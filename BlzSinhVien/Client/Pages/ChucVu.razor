@@ -1,0 +1,139 @@
+﻿@page "/chucvu"
+@using BlzSinhVien.Client.Pages.Dialog
+@inject IChucVuService ChucVuService
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin")]
+
+
+<MudButton OnClick="@((e) => CreateChucVu(chucvu))" Variant="Variant.Filled" Color="Color.Primary">
+    Create Chức Vụ
+</MudButton>
+
+<MudDataGrid T="BLChucVu" Items="@ListChuVu" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
+    RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true"  EditTrigger="DataGridEditTrigger.Manual" >
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Chức Vụ</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="BLChucVu" />
+        <Column T="BLChucVu" Field="Id" Title="STT" Filterable="false"/>
+        <Column T="BLChucVu" Field="RoleDesc" Title="Tên Chức Vụ"/>
+
+        <Column T="BLChucVu" CellClass="d-flex justify-end" Title="Action">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateChucVu(@context.Item.Id))" 
+                Color="Color.Primary" Variant="Variant.Filled"/> | 
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Delete" OnClick="@((e) => DeleteItem(context.Item.Id,Variant.Filled))" 
+                Color="Color.Error" Variant="Variant.Filled"/>
+            </CellTemplate>
+        </Column>
+    </Columns>
+    
+    <PagerContent>
+        <MudDataGridPager T="BLChucVu" />
+    </PagerContent>
+    
+</MudDataGrid>
+
+@code {
+    private List<BLChucVu> ListChuVu = new List<BLChucVu>();
+    private BLChucVu chucvu = new BLChucVu();
+    private string _searchString = string.Empty;
+    private bool _sortNameByLength = true;
+    private List<string> _events = new();
+    private bool _editTriggerRowClick = true;
+    private bool _readOnly = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+        var token = await customAuthStateProvider.GetToken();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            await ChucVuService.GetChucVu();
+            ListChuVu = ChucVuService.ChucVu;
+        }
+        else
+            navManager.NavigateTo("/");
+    }
+    #region
+    // custom sort by name length
+    private Func<BLChucVu, object> _sortBy => x =>
+    {
+        if (_sortNameByLength)
+            return x.RoleDesc.Length;
+        else
+            return x.RoleDesc;
+    };
+    // quick filter - filter gobally across multiple columns with the same input
+    private Func<BLChucVu, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.RoleDesc.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.Id.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if ($"{x.Id.ToString()} {x.RoleDesc} ".Contains(_searchString))
+            return true;
+
+        return false;
+    };
+
+
+    // events
+    void RowClicked(DataGridRowClickEventArgs<BLChucVu> args)
+    {
+        _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    void SelectedItemsChanged(HashSet<BLChucVu> items)
+    {
+        _events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+    }
+
+    #endregion
+
+    async Task DeleteItem(int id,Variant variant)
+    {
+        Snackbar.Add($"Đã xóa thành công ", Severity.Success);
+        await ChucVuService.Delete(id);
+        ListChuVu = ChucVuService.ChucVu;
+
+    }
+    async Task CreateChucVu(BLChucVu chucvu)
+    {
+        var parameters = new DialogParameters { ["chucvu"]=chucvu};
+
+        var dialog = DialogService.Show<DialogChucVu>("Create Chức Vụ", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await ChucVuService.GetChucVu();
+            ListChuVu = ChucVuService.ChucVu;
+            chucvu = new BLChucVu();
+        }
+    }
+     async Task UpdateChucVu(int Id)
+    {
+        var parameters = new DialogParameters { ["Id"]=Id};
+
+        var dialog = DialogService.Show<DialogChucVu>("Update Chức Vụ", parameters);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            await ChucVuService.GetChucVu();
+            ListChuVu = ChucVuService.ChucVu;
+         
+        }
+        chucvu = new BLChucVu();
+    }
+}

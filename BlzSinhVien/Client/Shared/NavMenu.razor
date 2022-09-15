@@ -1,0 +1,29 @@
+﻿<MudNavMenu>
+    <AuthorizeView Roles="Admin,User">
+         <Authorized>
+              <MudNavLink Href="/index" Match="NavLinkMatch.All">Dashboard</MudNavLink>
+         </Authorized>
+     </AuthorizeView>  
+    <AuthorizeView Roles="Admin,User">
+         <Authorized>
+            <MudNavGroup Title="Settings" Expanded="true">
+                  <MudNavLink Href="/fetchdata"  Match="NavLinkMatch.Prefix">fetchdata</MudNavLink>
+            </MudNavGroup>
+         </Authorized>
+     </AuthorizeView>  
+     <AuthorizeView Roles="Admin,User">
+        <Authorized>
+             <MudNavLink Href="/sinhvien" Match="NavLinkMatch.Prefix">Sinh Viên</MudNavLink>
+        </Authorized>
+     </AuthorizeView>
+      <AuthorizeView Roles="Admin">
+        <Authorized>
+             <MudNavLink Href="/chucvu" Match="NavLinkMatch.Prefix">Chức Vụ</MudNavLink>
+        </Authorized>
+     </AuthorizeView>
+      <AuthorizeView Roles="Admin">
+        <Authorized>
+             <MudNavLink Href="/lophoc" Match="NavLinkMatch.Prefix">Lớp Học</MudNavLink>
+        </Authorized>
+     </AuthorizeView>
+</MudNavMenu>

@@ -1,0 +1,112 @@
+﻿@inject ISinhVienService SinhVienService
+@inject ISnackbar Snackbar
+@using MudBlazor.Services
+
+<MudPaper Width="100%" Square="true" Class="mud-theme-primary">
+@if(Id == 0)
+{
+    
+    <h1 style="text-align:center">Create Sinh Viên</h1>
+}
+else
+{
+    <h1 style="text-align:center">Update Sinh Viên</h1>
+}
+<EditForm Model="@sinhvien" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudPaper Width="100%">
+        <MudItem xs="20" sm="15">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Mã Sinh Viên" HelperText="Max. 8 characters"
+                                  @bind-Value="sinhvien.MaSinhVien" For="@(() => sinhvien.MaSinhVien)"/>
+                    <MudTextField Label="Tên Sinh Viên" HelperText="Max. 8 characters"
+                                  @bind-Value="sinhvien.TenSinhVien" For="@(() => sinhvien.TenSinhVien)"/>
+                    
+                    <MudDatePicker Label="Ngày Sinh" @bind-Date="@sinhvien.NgaySinh" DateFormat="dd/MM/yyyy" />
+                    <MudText Style="font:inherit">Giới Tính</MudText>
+                    <MudRadioGroup @bind-SelectedOption="@sinhvien.GioiTinh">
+                        <MudRadio Option="@("Nam")" Color="Color.Primary">Nam</MudRadio>
+                        <MudRadio Option="@("Nữ")" Color="Color.Secondary">Nữ</MudRadio>
+                    </MudRadioGroup>
+
+                    <MudTextField Label="Dan Toc" HelperText="Max. 8 characters"
+                                  @bind-Value="sinhvien.DanToc" For="@(() => sinhvien.DanToc)"/>
+                    <MudTextField Label="Dia Chi" HelperText="Max. 8 characters"
+                                  @bind-Value="sinhvien.DiaChi" For="@(() => sinhvien.DiaChi)"/>
+                    <MudTextField Label="So dien thoai" HelperText="Max. 10 characters"
+                                  @bind-Value="sinhvien.SoDienThoai" For="@(() => sinhvien.SoDienThoai)"/>
+
+                    <MudSelect @bind-Value="sinhvien.LopHocId" Label="Ten Lop Hoc" OffsetY="true"  AnchorOrigin="Origin.BottomCenter">
+
+                    @foreach (var item in listlop){
+                          <MudSelectItem T=int? Value="@item.Id">@item.TenLopHoc</MudSelectItem>
+                    }   
+                    </MudSelect>
+
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+            </MudCard> 
+        </MudItem>
+    </MudPaper>
+</EditForm>
+
+</MudPaper>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public BLSinhVien sinhvien { get; set; } = new BLSinhVien();
+    [Parameter] public int Id { get; set; }
+    BLLopHoc lophoc = new BLLopHoc();
+    List<BLLopHoc> listlop = new List<BLLopHoc>();
+    void Cancel() => MudDialog.Cancel();
+    public string action = string.Empty;
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(Id == 0)
+        {
+            await SinhVienService.Create(sinhvien);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(sinhvien.Id));
+        }
+        else
+        {
+            await SinhVienService.Update(sinhvien);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(sinhvien.Id));
+        }
+
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        action = Id == 0 ? "Create Sinh Vien" : "Update Sinh Vien";
+        await SinhVienService.GetLopHoc();
+        listlop = SinhVienService.Lophoc;
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            sinhvien = new BLSinhVien();
+        }
+        else
+        {
+            BLSinhVien checksinhvien = await SinhVienService.GetId((int)Id);
+            if(checksinhvien!=null)
+            {
+                sinhvien = checksinhvien;
+            }
+        }
+    }
+}

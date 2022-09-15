@@ -1,0 +1,85 @@
+﻿@inject ILopHocService LopHocService
+@inject ISnackbar Snackbar
+@using MudBlazor.Services
+
+<MudPaper Width="100%" Square="true" Class="mud-theme-primary">
+@if(Id == 0)
+{
+    
+    <h1 style="text-align:center">Create Lớp Học</h1>
+}
+else
+{
+    <h1 style="text-align:center">Update Lớp Học</h1>
+}
+<EditForm Model="@lophoc" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudPaper Width="100%">
+        <MudItem xs="20" sm="15">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Mã Lớp Học" HelperText="Max. 8 characters"
+                                  @bind-Value="lophoc.MaLopHoc" For="@(() => lophoc.MaLopHoc)"/>
+                    <MudTextField Label="Tên Lớp Học" HelperText="Max. 8 characters"
+                                  @bind-Value="lophoc.TenLopHoc" For="@(() => lophoc.TenLopHoc)"/>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+            </MudCard> 
+        </MudItem>
+    </MudPaper>
+</EditForm>
+</MudPaper>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public BLLopHoc lophoc { get; set; } = new BLLopHoc();
+    [Parameter] public int Id { get; set; }
+    void Cancel() => MudDialog.Cancel();
+    public string action = string.Empty;
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(Id == 0)
+        {
+            await LopHocService.Create(lophoc);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(lophoc.Id));
+        }
+        else
+        {
+            await LopHocService.Update(lophoc);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(lophoc.Id));
+        }
+
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        action = Id == 0 ? "Create Lớp Học" : "Update Lớp Học";
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            lophoc = new BLLopHoc();
+        }
+        else
+        {
+            BLLopHoc checklophoc= await LopHocService.GetId((int)Id);
+            if(checklophoc!=null)
+            {
+                lophoc = checklophoc;
+            }
+        }
+    }
+}

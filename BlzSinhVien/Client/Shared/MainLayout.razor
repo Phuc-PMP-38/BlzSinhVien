@@ -1,0 +1,72 @@
+﻿@inherits LayoutComponentBase
+<MudThemeProvider/>
+<MudDialogProvider FullWidth = " true "  MaxWidth = " MaxWidth .ExtraSmall " CloseButton = " true " DisableBackdropClick = "true" 
+    NoHeader = " true " 
+    Position = " DialogPosition.Center " 
+    CloseOnEscapeKey = " true " 
+/>
+@{
+    var userSession = sessionStorage.ReadEncryptedItemAsync<UserSession>("UserSession");
+        if (userSession != default)
+        {
+             CheckLogin= true;
+        }
+        else
+        {
+             CheckLogin = false;
+        }
+}
+@if(CheckLogin == false)
+{
+         NavigationManager.NavigateTo("/");
+}
+else if(CheckLogin == true){
+     <MudSnackbarProvider/>
+    <MudLayout>
+        <MudAppBar Elevation="1">
+            <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+            <MudText Typo="Typo.h5" Class="ml-3">Quản lý Sinh Viên</MudText>
+            <MudSpacer />
+           <MudMenu>
+                <ActivatorContent>
+                    <MudAvatar Image="./EPUlogo.png" Style="height:50px; width:50px; font-size:2rem;"/>
+                </ActivatorContent>
+                <ChildContent>
+                    <MudMenuItem Href="/profille">Profile</MudMenuItem>
+                    <MudMenuItem Href="/resetpassword">Đổi mật khẩu</MudMenuItem>
+                    <MudMenuItem>Usage</MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Filled.Logout" OnClick="Logout">Sign Out</MudMenuItem>
+                </ChildContent>
+            </MudMenu>
+        </MudAppBar>
+        <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+            <MudNavMenu> 
+            </MudNavMenu>
+            <NavMenu/>
+        </MudDrawer>
+        <MudMainContent>
+            @Body
+        </MudMainContent>
+    </MudLayout>
+
+   
+}
+@code {
+    private bool _drawerOpen = true;
+    private bool CheckLogin = false;
+
+    private async Task Logout()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
+        await customAuthStateProvider.UpdateAuthenticationState(null);
+        await sessionStorage.ClearAsync();
+        NavigationManager.NavigateTo("/", true);
+    }
+
+    private void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}
+
+

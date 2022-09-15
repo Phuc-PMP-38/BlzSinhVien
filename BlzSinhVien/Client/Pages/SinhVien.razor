@@ -1,0 +1,152 @@
+﻿@page "/sinhvien"
+@using BlzSinhVien.Client.Pages.Dialog
+@inject ISinhVienService SinhVienService
+@inject ILopHocService LopHocService
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin,User")]
+
+
+<MudButton OnClick="@((e) => CreateSinhVien(sv))" Variant="Variant.Filled" Color="Color.Primary">
+    Create Sinh Vien
+</MudButton>
+
+<MudDataGrid T="BLSinhVien" Items="@ListSinhVien" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
+    RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true" EditTrigger="DataGridEditTrigger.Manual" >
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Sinh Viên</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="BLSinhVien" />
+        <Column T="BLSinhVien" Field="Id" Title="STT" Filterable="false"/>
+        <Column T="BLSinhVien" Field="MaSinhVien" Title="Mã Sinh Viên"/>
+        <Column T="BLSinhVien" Field="TenSinhVien" Title="Tên Sinh Viên"/>
+        <Column T="BLSinhVien" Field="NgaySinh" Title="Ngày Sinh"/>
+        <Column T="BLSinhVien" Field="GioiTinh" Title="Giới Tính"/>
+        <Column T="BLSinhVien" Field="DanToc" Title="Dân Tộc"/>
+        <Column T="BLSinhVien" Field="DiaChi" Title="Địa Chỉ"/>
+        <Column T="BLSinhVien" Field="SoDienThoai" Title="Số Điện Thoại"/>
+        <Column T="BLSinhVien" Title="Tên Lớp Học">
+            <CellTemplate>
+                <MudText>@ListLopHoc.Where(i=>i.Id == context.Item.LopHocId).Select(e=>e.TenLopHoc).FirstOrDefault()</MudText>
+            </CellTemplate>
+        </Column>
+
+        <Column T="BLSinhVien" CellClass="d-flex justify-end" Title="Action">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateSinhVien(@context.Item.Id))" 
+                Color="Color.Primary" Variant="Variant.Filled"/> | 
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Delete" OnClick="@((e) => DeleteItem(context.Item.Id,Variant.Filled))" 
+                Color="Color.Error" Variant="Variant.Filled"/>
+            </CellTemplate>
+        </Column>
+    </Columns>
+    
+    <PagerContent>
+        <MudDataGridPager T="BLSinhVien" />
+    </PagerContent>
+    
+</MudDataGrid>
+
+@code {
+    private List<BLSinhVien> ListSinhVien = new List<BLSinhVien>();
+    private IList<BLLopHoc> ListLopHoc = new List<BLLopHoc>();
+    private BLSinhVien sv = new BLSinhVien();
+    private string _searchString = string.Empty;
+    private bool _sortNameByLength = true;
+    private List<string> _events = new();
+    private bool _readOnly = true;
+    protected override async Task OnInitializedAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+        var token = await customAuthStateProvider.GetToken();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            await SinhVienService.GetSinhVien();
+            await SinhVienService.GetLopHoc();
+            ListLopHoc = SinhVienService.Lophoc;
+            ListSinhVien = SinhVienService.SinhVien;
+        }
+        else
+            navManager.NavigateTo("/");
+    }
+    #region
+    // custom sort by name length
+    private Func<BLSinhVien, object> _sortBy => x =>
+    {
+        if (_sortNameByLength)
+            return x.TenSinhVien.Length;
+        else
+            return x.TenSinhVien;
+    };
+    // quick filter - filter gobally across multiple columns with the same input
+    private Func<BLSinhVien, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.TenSinhVien.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.MaSinhVien.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if ($"{x.MaSinhVien} {x.TenSinhVien} ".Contains(_searchString))
+            return true;
+
+        return false;
+    };
+
+
+    // events
+    void RowClicked(DataGridRowClickEventArgs<BLSinhVien> args)
+    {
+        _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    void SelectedItemsChanged(HashSet<BLSinhVien> items)
+    {
+        _events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+    }
+
+    #endregion
+
+    async Task DeleteItem(int id,Variant variant)
+    {
+        Snackbar.Add($"Đã xóa thành công ", Severity.Success);
+        await SinhVienService.Delete(id);
+        ListSinhVien = SinhVienService.SinhVien;
+
+    }
+    async Task CreateSinhVien(BLSinhVien sinhvien)
+    {
+        var parameters = new DialogParameters { ["sinhvien"]=sinhvien};
+
+        var dialog = DialogService.Show<DialogCreateSinhVien>("Create SinhVien", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await SinhVienService.GetSinhVien();
+            ListSinhVien = SinhVienService.SinhVien;
+            sv = new BLSinhVien();
+        }
+    }
+    async Task UpdateSinhVien(int Id)
+    {
+        var parameters = new DialogParameters { ["Id"]=Id};
+
+        var dialog = DialogService.Show<DialogCreateSinhVien>("Update SinhVien", parameters);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            await SinhVienService.GetSinhVien();
+            ListSinhVien = SinhVienService.SinhVien;
+
+        }
+        sv = new BLSinhVien();
+    }
+}

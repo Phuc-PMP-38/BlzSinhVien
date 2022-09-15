@@ -1,0 +1,139 @@
+﻿@page "/lophoc"
+@using BlzSinhVien.Client.Pages.Dialog
+@inject ILopHocService LopHocService
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin")]
+
+
+<MudButton OnClick="@((e) => CreateLopHoc(lophoc))" Variant="Variant.Filled" Color="Color.Primary">
+    Create Lớp Học
+</MudButton>
+
+<MudDataGrid T="BLLopHoc" Items="@listlophoc" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
+    RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true" EditTrigger="DataGridEditTrigger.Manual" >
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Lớp Học</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="BLLopHoc" />
+        <Column T="BLLopHoc" Field="Id" Title="STT" Filterable="false"/>
+        <Column T="BLLopHoc" Field="MaLopHoc" Title="Mã Lớp Học"/>
+        <Column T="BLLopHoc" Field="TenLopHoc" Title="Tên Lớp"/>
+        <Column T="BLLopHoc" CellClass="d-flex justify-end" Title="Action" >
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateLopHoc(@context.Item.Id))" 
+                Color="Color.Primary" Variant="Variant.Filled"/> | 
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Delete" OnClick="@((e) => DeleteItem(context.Item.Id,Variant.Filled))" 
+                Color="Color.Error" Variant="Variant.Filled"/>
+            </CellTemplate>
+        </Column>
+    </Columns>
+    
+    <PagerContent>
+        <MudDataGridPager T="BLLopHoc" />
+    </PagerContent>
+    
+</MudDataGrid>
+
+@code {
+    private List<BLLopHoc> listlophoc = new List<BLLopHoc>();
+    private BLLopHoc lophoc = new BLLopHoc();
+    private string _searchString = string.Empty;
+    private bool _sortNameByLength = true;
+    private List<string> _events = new();
+    private bool _editTriggerRowClick = true;
+    private bool _readOnly = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+        var token = await customAuthStateProvider.GetToken();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            await LopHocService.GetLopHoc();
+            listlophoc = LopHocService.Lophoc;
+        }
+        else
+            navManager.NavigateTo("/");
+    }
+    #region
+    // custom sort by name length
+    private Func<BLLopHoc, object> _sortBy => x =>
+    {
+        if (_sortNameByLength)
+            return x.TenLopHoc.Length;
+        else
+            return x.TenLopHoc;
+    };
+    // quick filter - filter gobally across multiple columns with the same input
+    private Func<BLLopHoc, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.TenLopHoc.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.MaLopHoc.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if ($"{x.MaLopHoc} {x.TenLopHoc} ".Contains(_searchString))
+            return true;
+
+        return false;
+    };
+
+
+    // events
+    void RowClicked(DataGridRowClickEventArgs<BLLopHoc> args)
+    {
+        _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    void SelectedItemsChanged(HashSet<BLLopHoc> items)
+    {
+        _events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+    }
+
+    #endregion
+
+    async Task DeleteItem(int id,Variant variant)
+    {
+        Snackbar.Add($"Đã xóa thành công ", Severity.Success);
+        await LopHocService.Delete(id);
+        listlophoc = LopHocService.Lophoc;
+
+    }
+    async Task CreateLopHoc(BLLopHoc lophoc)
+    {
+        var parameters = new DialogParameters { ["lophoc"]=lophoc};
+
+        var dialog = DialogService.Show<DialogLopHoc>("Create Lớp Học", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            await LopHocService.GetLopHoc();
+            listlophoc = LopHocService.Lophoc;
+            lophoc = new BLLopHoc();
+        }
+    }
+     async Task UpdateLopHoc(int Id)
+    {
+        var parameters = new DialogParameters { ["Id"]=Id};
+
+        var dialog = DialogService.Show<DialogLopHoc>("Update Lớp Học", parameters);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+             await LopHocService.GetLopHoc();
+            listlophoc = LopHocService.Lophoc;
+         
+        }
+        lophoc = new BLLopHoc();
+    }
+}

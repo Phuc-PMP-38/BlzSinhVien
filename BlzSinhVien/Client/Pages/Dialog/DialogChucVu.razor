@@ -1,0 +1,79 @@
+﻿@inject IChucVuService ChucVuService
+@inject ISnackbar Snackbar
+@using MudBlazor.Services
+
+<MudPaper Width="100%" Square="true" Class="mud-theme-primary">
+@if(Id == 0)
+{
+    
+    <h1 style="text-align:center">Create Chức Vụ</h1>
+}
+else
+{
+    <h1 style="text-align:center">Update Chức Vụ</h1>
+}
+<EditForm Model="@chucvu" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudPaper Width="100%">
+        <MudItem xs="20" sm="15">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Tên Chức Vụ" HelperText="Max. 8 characters"
+                                  @bind-Value="chucvu.RoleDesc" For="@(() => chucvu.RoleDesc)"/>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+            </MudCard> 
+        </MudItem>
+    </MudPaper>
+</EditForm>
+</MudPaper>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public BLChucVu chucvu { get; set; } = new BLChucVu();
+    [Parameter] public int Id { get; set; }
+    void Cancel() => MudDialog.Cancel();
+    public string action = string.Empty;
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(Id == 0)
+        {
+            await ChucVuService.Create(chucvu);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(chucvu.Id));
+        }
+        else
+        {
+            await ChucVuService.Update(chucvu);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(chucvu.Id));
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            action = "Create Chức Vụ";
+            chucvu = new BLChucVu();
+        }
+        else
+        {
+            action ="Update Chức Vụ";
+            BLChucVu checkchucvu = await ChucVuService.GetId((int)Id);
+            if(checkchucvu!=null)
+            {
+                chucvu = checkchucvu;
+            }
+        }
+    }
+}

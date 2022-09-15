@@ -1,0 +1,55 @@
+﻿@page  "/"
+@using BlzSinhVien.Shared.Model.User
+@layout CenteredCardLayout
+@using System.Net
+@inject HttpClient httpClient
+@inject IJSRuntime js
+<EditForm Model="use" OnValidSubmit="@ValidateUser">
+    <div>
+        <br /><br /><br /><br /><br />
+    </div>
+    <div>
+        <h3 style="font-weight:bold; color:purple">Quản lý Sinh Viên Điện lực </h3>
+        <br/>
+        <h3 style="font-weight:bold; color:purple">Login</h3>
+    </div>
+    <div>
+        <br />
+    </div>
+    <div class="col-12 row">
+        <input class="form-control col-12" @bind-value="use.EmailAddress" placeholder="email address" />
+    </div>
+    <br />
+    <div class="col-12 row">
+        <input type="password" class="form-control col-12" @bind-value="use.Password"  placeholder="password" />
+    </div>
+    <br />
+    <div class="col-12 row">
+        <span class="col-12"></span>
+        <input type="submit" class="form-control col-6 btn btn-primary" value="Login" />
+    </div>
+    <br />
+    <div class="col-12 row" style="text-align:left; font-weight:bold">
+        <span class="col-12">@thongbao</span>
+    </div>
+</EditForm>
+@code{
+    private BLUserLogin use = new BLUserLogin();
+    private string thongbao = "";
+    private async Task ValidateUser()
+    { 
+        var loginResponse = await httpClient.PostAsJsonAsync<BLUserLogin>("/api/User/Login", use);
+        if (loginResponse.IsSuccessStatusCode)
+        {
+            var userSession = await loginResponse.Content.ReadFromJsonAsync<UserSession>();
+            var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+            await customAuthStateProvider.UpdateAuthenticationState(userSession);
+            navManager.NavigateTo("/index", true);
+        }
+        else 
+        {
+            await js.InvokeVoidAsync("alert", "Invalid User Name or Password");
+            return;
+        }
+    }
+}
