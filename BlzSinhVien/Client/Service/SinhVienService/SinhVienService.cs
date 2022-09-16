@@ -1,4 +1,5 @@
 ﻿using BlzSinhVien.Shared.Model;
+using BlzSinhVien.Shared.Model.User;
 using System.Net.Http.Json;
 
 namespace BlzSinhVien.Client.Service.SinhVienService
@@ -57,6 +58,19 @@ namespace BlzSinhVien.Client.Service.SinhVienService
             var conresult = await result.Content.ReadFromJsonAsync<List<BLSinhVien>>();
             if (conresult != null) 
                 SinhVien = conresult;
+        }
+        public async Task<BLSinhVien> GetEmailSinhVien(string email)
+        {
+            var result = await _http.GetFromJsonAsync<List<BLUser>>("api/User");
+            if (result != null)
+            {
+                var UserSV = result.FirstOrDefault(e => e.EmailAddress == email);
+                if (UserSV != null)
+                {
+                    return UserSV.SinhVien;
+                }
+            }
+            return null;
         }
 
     }

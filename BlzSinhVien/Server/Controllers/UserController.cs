@@ -28,6 +28,16 @@ namespace BlzSinhVien.Server.Controllers
             else
                 return login;
         }
+        [HttpGet]
+        public async Task<ActionResult<List<BLUser>>> GetListUser()
+        {
+            return await _user.GetListUser();
+        }
+        [HttpGet("{Id}")]
+        public async Task<ActionResult<BLUser>> GetIdUser(int Id)
+        {
+            return Ok(await _user.GetUserID(Id));
+        }
         [HttpPost("Create")]
         public async Task<ActionResult<List<BLUser>>> Create(UserRegisterRequest user)
         {
@@ -36,7 +46,22 @@ namespace BlzSinhVien.Server.Controllers
         [HttpPut("Update")]
         public async Task<ActionResult<BLUser>> Update(BLUserPasswordRequest user)
         {
-            return await _user.UpdateUser(user);
+            return await _user.UpdatePass(user);
+        }
+        [HttpPut("UpdateUser")]
+        public async Task<ActionResult<List<BLUser>>> UpdateUser(int Id,BLUser user)
+        {
+            var result = await _user.UpdateUser(Id, user);
+            if(result != null)
+            {
+                return result;
+            }
+            return NotFound();
+        }
+        [HttpDelete("Delete")]
+        public async Task<ActionResult<List<BLUser>>> Delete(int Id)
+        {
+            return await _user.DeleteUser(Id);
         }
     }
 }

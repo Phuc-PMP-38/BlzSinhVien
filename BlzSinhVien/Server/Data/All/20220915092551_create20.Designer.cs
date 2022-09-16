@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BlzSinhVien.Server.Data.All
 {
     [DbContext(typeof(DataContext))]
-    [Migration("20220911171922_create")]
-    partial class create
+    [Migration("20220915092551_create20")]
+    partial class create20
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -23,6 +23,22 @@ namespace BlzSinhVien.Server.Data.All
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLChucVu", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("RoleDesc")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ChucVus");
+                });
 
             modelBuilder.Entity("BlzSinhVien.Shared.Model.BLLopHoc", b =>
                 {
@@ -103,6 +119,9 @@ namespace BlzSinhVien.Server.Data.All
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<int>("ChucVuId")
+                        .HasColumnType("int");
+
                     b.Property<string>("EmailAddress")
                         .HasColumnType("nvarchar(max)");
 
@@ -120,6 +139,8 @@ namespace BlzSinhVien.Server.Data.All
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ChucVuId");
+
                     b.ToTable("BLUsers");
                 });
 
@@ -136,6 +157,22 @@ namespace BlzSinhVien.Server.Data.All
                     b.Navigation("LopHoc");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.User.BLUser", b =>
+                {
+                    b.HasOne("BlzSinhVien.Shared.Model.BLChucVu", "ChucVu")
+                        .WithMany("Users")
+                        .HasForeignKey("ChucVuId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChucVu");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLChucVu", b =>
+                {
+                    b.Navigation("Users");
                 });
 
             modelBuilder.Entity("BlzSinhVien.Shared.Model.BLLopHoc", b =>

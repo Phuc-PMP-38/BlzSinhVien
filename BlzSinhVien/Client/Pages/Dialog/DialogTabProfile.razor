@@ -1,23 +1,27 @@
 ﻿@page "/profille"
+@using Blazored.SessionStorage
+@using BlzSinhVien.Client.Extensions
+@using BlzSinhVien.Client.Pages.Dialog
+@inject ISinhVienService SinhVienService
+@inject ISnackbar Snackbar
+@inject ISessionStorageService sessionStorage
 <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
     <MudTabPanel Text="Thông tin ">
         <MudGrid>
     <MudItem xs="12" sm="3">
-            <MudImage Fluid="true" Src="images/sweden.jpg" Width="250" Height="270" Alt="Swedish Farm House" Elevation="25" Class="rounded-lg ma-4"/>
+            <MudImage Fluid="true" Src="./Anh/EPUlogo.png" Width="250" Height="270" Alt="Swedish Farm House" Elevation="25" Class="rounded-lg ma-4"/>
     </MudItem>
-    
     <MudItem xs="12" sm="5">
-           <MudText style="padding:20px">Họ và tên : </MudText>
-           <MudText style="padding:20px">Họ và tên : </MudText>
-           <MudText style="padding:20px">Họ và tên : </MudText>
-           <MudText style="padding:20px">Họ và tên : </MudText>
+           <MudText style="padding:20px">Mã Sinh Viên : @sv.MaSinhVien</MudText>
+           <MudText style="padding:20px">Họ và tên : @sv.TenSinhVien</MudText>
+           <MudText style="padding:20px">Khoa : CNTT</MudText>
+           <MudText style="padding:20px">Chuyên Ngành : CNPM</MudText>
     </MudItem>
     <MudItem xs="12" sm="4">
-           <MudText style="padding:20px">Họ và tên : </MudText>
-           <MudText style="padding:20px">Họ và tên : </MudText>
-           <MudText style="padding:20px">Họ và tên : </MudText>
-           <MudText style="padding:20px">Họ và tên : </MudText>
-      
+           <MudText style="padding:20px">Ngày Sinh :  @sv.NgaySinh</MudText>
+           <MudText style="padding:20px">Giới Tính : @sv.GioiTinh</MudText>
+           <MudText style="padding:20px">Số Điện Thoại : @sv.SoDienThoai</MudText>
+           <MudText style="padding:20px">Dân Tộc : @sv.DanToc</MudText>
     </MudItem>
      
     <MudItem xs="12" sm="3">
@@ -26,7 +30,7 @@
         </MudText>
     </MudItem>
      <MudItem xs="12" sm="9">
-        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto"  >Cập nhật thông tin</MudButton> 
+        <MudButton OnClick="@((e) => UpdateSinhVien(sv.Id))" Variant="Variant.Filled" Color="Color.Primary">Cập nhật thông tin</MudButton>
     </MudItem>
 </MudGrid>
     </MudTabPanel>
@@ -40,3 +44,26 @@
         <MudText>Content Disabled</MudText>
     </MudTabPanel>
 </MudTabs>
+@code{
+    private BLSinhVien sv =new BLSinhVien();
+    private UserSession usersession = new UserSession();
+    protected override async Task OnInitializedAsync(){
+        usersession =await sessionStorage.ReadEncryptedItemAsync<UserSession>("UserSession");
+        if (usersession != null)
+        {
+            sv = await SinhVienService.GetEmailSinhVien(usersession.UserName);
+        }
+    }
+    async Task UpdateSinhVien(int Id)
+    {
+        DialogOptions maxWidth = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var parameters = new DialogParameters { ["Id"]=Id};
+        var dialog = DialogService.Show<DialogProfile>("Cập nhật thông tin ", parameters,maxWidth);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            sv = await SinhVienService.GetEmailSinhVien(usersession.UserName);
+        }
+    }
+}

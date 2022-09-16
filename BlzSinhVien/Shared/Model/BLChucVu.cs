@@ -11,7 +11,5 @@ namespace BlzSinhVien.Shared.Model
     public class BLChucVu : BLBase
     {
         public string RoleDesc { get; set; }
-        [JsonIgnore]
-        public virtual ICollection<BLUser> Users { get; set; } = new HashSet<BLUser>();
     }
 }

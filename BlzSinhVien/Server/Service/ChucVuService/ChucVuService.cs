@@ -17,7 +17,7 @@ namespace BlzSinhVien.Server.Service.ChucVuService
         {
             try
             {
-                chucvu.Users = new List<BLUser>();
+                //chucvu.Users = new List<BLUser>();
                 _context.ChucVus.Add(chucvu);
                 await _context.SaveChangesAsync();
                 return await _context.ChucVus.ToListAsync();

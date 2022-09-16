@@ -1,4 +1,5 @@
-﻿using BlzSinhVien.Shared.Model.User;
+﻿using BlzSinhVien.Shared.Model;
+using BlzSinhVien.Shared.Model.User;
 
 namespace BlzSinhVien.Client.Service.UserService
 {
@@ -6,8 +7,12 @@ namespace BlzSinhVien.Client.Service.UserService
     {
         List<BLUser> Listuser { get; set; }
         UserSession usersession { get; set; }
-        Task<BLUser> Getuser(BLUser user);
+        Task GetUser();
+        Task Delete(int Id);
+        Task Update(BLUser user,int Id);
+        Task Create(UserRegisterRequest user);
         Task<BLUser> GetIdUser(int Id);
         Task<bool> UpdatePass(BLUserPasswordRequest userPass, UserSession sessionStorage);
+
     }
 }

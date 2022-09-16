@@ -1,30 +1,31 @@
-﻿@page "/chucvu"
+﻿@page "/user"
 @using BlzSinhVien.Client.Pages.Dialog
+@inject IUserService UserService
 @inject IChucVuService ChucVuService
 @inject ISnackbar Snackbar
 @attribute [Authorize(Roles = "Admin")]
 
 
-<MudButton OnClick="@((e) => CreateChucVu(chucvu))" Variant="Variant.Filled" Color="Color.Primary">
-    Create Chức Vụ
+<MudButton OnClick="@((e) => CreateUser(user))" Variant="Variant.Filled" Color="Color.Primary">
+    Create User
 </MudButton>
 
-<MudDataGrid T="BLChucVu" Items="@ListChuVu" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
-    RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true"  EditTrigger="DataGridEditTrigger.Manual" >
+<MudDataGrid T="BLUser" Items="@listuser" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
+    RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true" EditTrigger="DataGridEditTrigger.Manual" >
     <ToolBarContent>
-        <MudText Typo="Typo.h6">Chức Vụ</MudText>
+        <MudText Typo="Typo.h6">Users</MudText>
         <MudSpacer />
         <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
             AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <Columns>
-        <SelectColumn T="BLChucVu" />
-        <Column T="BLChucVu" Field="Id" Title="STT" Filterable="false"/>
-        <Column T="BLChucVu" Field="RoleDesc" Title="Tên Chức Vụ"/>
-
-        <Column T="BLChucVu" CellClass="d-flex justify-end" Title="Action">
+        <SelectColumn T="BLUser" />
+        <Column T="BLUser" Field="Id" Title="STT" Filterable="false"/>
+        <Column T="BLUser" Field="EmailAddress" Title="Email"/>
+        <Column T="BLUser" Field="Role" Title="Quyền"/>
+        <Column T="BLUser" CellClass="d-flex justify-end" Title="Action">
             <CellTemplate>
-                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateChucVu(@context.Item.Id))" 
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateUser(@context.Item.Id))" 
                 Color="Color.Primary" Variant="Variant.Filled"/> | 
                 <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Delete" OnClick="@((e) => DeleteItem(context.Item.Id,Variant.Filled))" 
                 Color="Color.Error" Variant="Variant.Filled"/>
@@ -33,19 +34,18 @@
     </Columns>
     
     <PagerContent>
-        <MudDataGridPager T="BLChucVu" />
+        <MudDataGridPager T="BLUser" />
     </PagerContent>
     
 </MudDataGrid>
 
 @code {
-    private List<BLChucVu> ListChuVu = new List<BLChucVu>();
-    private BLChucVu chucvu = new BLChucVu();
+    private List<BLUser> listuser = new List<BLUser>();
+    private BLUser user = new BLUser();
     private string _searchString = string.Empty;
     private bool _sortNameByLength = true;
     private List<string> _events = new();
     private bool _readOnly = true;
-
     protected override async Task OnInitializedAsync()
     {
         var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
@@ -53,34 +53,34 @@
         if (!string.IsNullOrWhiteSpace(token))
         {
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
-            await ChucVuService.GetChucVu();
-            ListChuVu = ChucVuService.ChucVu;
+            await UserService.GetUser();
+            listuser = UserService.Listuser;
         }
         else
             navManager.NavigateTo("/");
     }
     #region
     // custom sort by name length
-    private Func<BLChucVu, object> _sortBy => x =>
+    private Func<BLUser, object> _sortBy => x =>
     {
         if (_sortNameByLength)
-            return x.RoleDesc.Length;
+            return x.EmailAddress.Length;
         else
-            return x.RoleDesc;
+            return x.EmailAddress;
     };
     // quick filter - filter gobally across multiple columns with the same input
-    private Func<BLChucVu, bool> _quickFilter => x =>
+    private Func<BLUser, bool> _quickFilter => x =>
     {
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
 
-        if (x.RoleDesc.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+        if (x.EmailAddress.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if (x.Id.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+        if (x.Role.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if ($"{x.Id.ToString()} {x.RoleDesc} ".Contains(_searchString))
+        if ($"{x.EmailAddress} {x.Role} ".Contains(_searchString))
             return true;
 
         return false;
@@ -88,12 +88,12 @@
 
 
     // events
-    void RowClicked(DataGridRowClickEventArgs<BLChucVu> args)
+    void RowClicked(DataGridRowClickEventArgs<BLUser> args)
     {
         _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
     }
 
-    void SelectedItemsChanged(HashSet<BLChucVu> items)
+    void SelectedItemsChanged(HashSet<BLUser> items)
     {
         _events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
     }
@@ -103,36 +103,33 @@
     async Task DeleteItem(int id,Variant variant)
     {
         Snackbar.Add($"Đã xóa thành công ", Severity.Success);
-        await ChucVuService.Delete(id);
-        ListChuVu = ChucVuService.ChucVu;
+        await UserService.Delete(id);
+        listuser = UserService.Listuser;
 
     }
-    async Task CreateChucVu(BLChucVu chucvu)
+    async Task CreateUser(BLUser users)
     {
-        var parameters = new DialogParameters { ["chucvu"]=chucvu};
-
-        var dialog = DialogService.Show<DialogChucVu>("Create Chức Vụ", parameters);
+        var parameters = new DialogParameters { ["users"]=users};
+        var dialog = DialogService.Show<DialogUsers>("Create User",parameters);
         var result = await dialog.Result;
 
         if (!result.Cancelled)
         {
-            await ChucVuService.GetChucVu();
-            ListChuVu = ChucVuService.ChucVu;
-            chucvu = new BLChucVu();
+            await UserService.GetUser();
+            listuser = UserService.Listuser;
+            user = new BLUser();
         }
     }
-     async Task UpdateChucVu(int Id)
+    async Task UpdateUser(int Id)
     {
         var parameters = new DialogParameters { ["Id"]=Id};
-
-        var dialog = DialogService.Show<DialogChucVu>("Update Chức Vụ", parameters);
+        var dialog = DialogService.Show<DialogUsers>("Update User", parameters);
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
-            await ChucVuService.GetChucVu();
-            ListChuVu = ChucVuService.ChucVu;
-         
+            await UserService.GetUser();
+            listuser = UserService.Listuser;
         }
-        chucvu = new BLChucVu();
+        user = new BLUser();
     }
 }

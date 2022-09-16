@@ -1,0 +1,111 @@
+﻿@inject IChucVuService ChucVuService
+@inject IUserService UserService
+@inject ISnackbar Snackbar
+@using MudBlazor.Services
+
+<MudPaper Width="100%" Square="true" Class="mud-theme-primary">
+@if(Id == 0)
+{
+    
+    <h1 style="text-align:center">Create User</h1>
+}
+else
+{
+    <h1 style="text-align:center">Update User</h1>
+}
+<EditForm Model="@user" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudPaper Width="100%">
+        <MudItem xs="20" sm="15">
+            <MudCard>
+                <MudCardContent>
+                     <MudTextField Label="Email" HelperText="Max. 8 characters"
+                                  @bind-Value="user.EmailAddress" For="@(() => user.EmailAddress)"/>
+                    @if(Id==0){
+                    <MudTextField Label="PassWord" HelperText="Max. 8 characters"
+                                  @bind-Value="user.Password" For="@(() => user.Password)"/>
+                    <MudTextField Label="ConfirmPassword" HelperText="Max. 8 characters"
+                                  @bind-Value="user.ConfirmPassword" For="@(() => user.ConfirmPassword)"/>
+                    }
+                    <MudSelect @bind-Value="_selectedDepartment" Label="Select Department" OffsetY="true">
+
+                        @foreach (var department in listchucvu){
+                              <MudSelectItem T=int? Value="@department.Id">@department.RoleDesc</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudText>@_selectedDepartment</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+            </MudCard> 
+        </MudItem>
+    </MudPaper>
+</EditForm>
+
+</MudPaper>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public int Id { get; set; }
+    [Parameter] public BLUser users { get; set; } = new BLUser();
+    List<BLChucVu> listchucvu  = new List<BLChucVu>();
+    UserRegisterRequest user  = new UserRegisterRequest { ChucVuId=1};
+    void Cancel() => MudDialog.Cancel();
+    public string action = string.Empty;
+    int? _selectedDepartment = 1;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ChucVuService.GetChucVu();
+        listchucvu = ChucVuService.ChucVu;
+    }
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(Id == 0)
+        {
+            user.ChucVuId = _selectedDepartment.Value;
+            listchucvu.ForEach(e => { if (e.Id == user.ChucVuId) { user.Role = e.RoleDesc; } });
+            await UserService.Create(user);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(user.EmailAddress));
+        }
+        else
+        {
+            users.ChucVuId = _selectedDepartment.Value;
+            listchucvu.ForEach(e => { if (e.Id == user.ChucVuId) { users.Role = e.RoleDesc; } });
+
+            await UserService.Update(users,Id);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(user.EmailAddress));
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            action = "Create User";
+            user = new UserRegisterRequest();
+        }
+        else
+        {
+            action ="Update User";
+            BLUser checkUser = await UserService.GetIdUser((int)Id);
+            if(checkUser!=null)
+            {
+                users = checkUser;
+            }
+            user.EmailAddress = users.EmailAddress;
+            user.Role = users.Role;
+            user.ChucVuId = users.ChucVuId;
+        }
+    }
+}

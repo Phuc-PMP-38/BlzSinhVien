@@ -16,5 +16,6 @@ namespace BlzSinhVien.Shared.Model.User
         [Required, Compare("Password")]
         public string ConfirmPassword { get; set; } = string.Empty;
         public string Role { get; set; }
+        public int ChucVuId { get; set; }
     }
 }

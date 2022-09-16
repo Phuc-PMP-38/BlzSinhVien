@@ -5,25 +5,21 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace BlzSinhVien.Server.Data.All
 {
-    public partial class create : Migration
+    public partial class create20 : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "BLUsers",
+                name: "ChucVus",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    EmailAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    PasswordHash = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
-                    PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
-                    Role = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ResetTokenExpires = table.Column<DateTime>(type: "datetime2", nullable: true)
+                    RoleDesc = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_BLUsers", x => x.Id);
+                    table.PrimaryKey("PK_ChucVus", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -38,6 +34,30 @@ namespace BlzSinhVien.Server.Data.All
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_LopHocs", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BLUsers",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    EmailAddress = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PasswordHash = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    PasswordSalt = table.Column<byte[]>(type: "varbinary(max)", nullable: true),
+                    Role = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ResetTokenExpires = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    ChucVuId = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BLUsers", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_BLUsers_ChucVus_ChucVuId",
+                        column: x => x.ChucVuId,
+                        principalTable: "ChucVus",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
@@ -72,6 +92,11 @@ namespace BlzSinhVien.Server.Data.All
                 });
 
             migrationBuilder.CreateIndex(
+                name: "IX_BLUsers_ChucVuId",
+                table: "BLUsers",
+                column: "ChucVuId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_SinhViens_LopHocId",
                 table: "SinhViens",
                 column: "LopHocId");
@@ -94,6 +119,9 @@ namespace BlzSinhVien.Server.Data.All
 
             migrationBuilder.DropTable(
                 name: "LopHocs");
+
+            migrationBuilder.DropTable(
+                name: "ChucVus");
         }
     }
 }

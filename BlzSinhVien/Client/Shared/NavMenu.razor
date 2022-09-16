@@ -26,4 +26,9 @@
              <MudNavLink Href="/lophoc" Match="NavLinkMatch.Prefix">Lớp Học</MudNavLink>
         </Authorized>
      </AuthorizeView>
+       <AuthorizeView Roles="Admin">
+        <Authorized>
+             <MudNavLink Href="/user" Match="NavLinkMatch.Prefix">User</MudNavLink>
+        </Authorized>
+     </AuthorizeView>
 </MudNavMenu>

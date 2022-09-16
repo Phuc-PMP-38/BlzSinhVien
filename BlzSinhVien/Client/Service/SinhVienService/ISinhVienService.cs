@@ -12,5 +12,6 @@ namespace BlzSinhVien.Client.Service.SinhVienService
         Task<BLSinhVien> GetId(int id);
         Task Update(BLSinhVien sinhvien);
         Task Delete(int id);
+        Task<BLSinhVien> GetEmailSinhVien(string email);
     }
 }

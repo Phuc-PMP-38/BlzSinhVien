@@ -117,7 +117,7 @@ namespace BlzSinhVien.Server.Data.All
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
-                    b.Property<int?>("BLChucVuId")
+                    b.Property<int>("ChucVuId")
                         .HasColumnType("int");
 
                     b.Property<string>("EmailAddress")
@@ -137,7 +137,7 @@ namespace BlzSinhVien.Server.Data.All
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BLChucVuId");
+                    b.HasIndex("ChucVuId");
 
                     b.ToTable("BLUsers");
                 });
@@ -159,9 +159,13 @@ namespace BlzSinhVien.Server.Data.All
 
             modelBuilder.Entity("BlzSinhVien.Shared.Model.User.BLUser", b =>
                 {
-                    b.HasOne("BlzSinhVien.Shared.Model.BLChucVu", null)
+                    b.HasOne("BlzSinhVien.Shared.Model.BLChucVu", "ChucVu")
                         .WithMany("Users")
-                        .HasForeignKey("BLChucVuId");
+                        .HasForeignKey("ChucVuId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChucVu");
                 });
 
             modelBuilder.Entity("BlzSinhVien.Shared.Model.BLChucVu", b =>

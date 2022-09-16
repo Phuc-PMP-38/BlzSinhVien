@@ -9,7 +9,8 @@ namespace BlzSinhVien.Server.Service.UserService
         Task<UserSession> Login(BLUserLogin user);
         Task<List<BLUser>> GetListUser();
         Task<List<BLUser>> CreateUser(UserRegisterRequest user);
-        Task<BLUser> UpdateUser(BLUserPasswordRequest user);
+        Task<BLUser> UpdatePass(BLUserPasswordRequest user);
+        Task<List<BLUser>> UpdateUser(int Id,BLUser user);
         Task<List<BLUser>> DeleteUser(int Id);
         bool VerifyPasswordHash(string password, byte[] passwordHash, byte[] passwordSalt);
         string CreateRandomToken();

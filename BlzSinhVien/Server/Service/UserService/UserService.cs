@@ -34,7 +34,9 @@ namespace BlzSinhVien.Server.Service.UserService
                 EmailAddress = user.EmailAddress,
                 PasswordHash = passwordHash,
                 PasswordSalt = passwordSalt,
-                Role = user.Role
+                Role = user.Role,
+                ChucVuId = user.ChucVuId
+
             };
 
             _context.BLUsers.Add(user1);
@@ -55,12 +57,12 @@ namespace BlzSinhVien.Server.Service.UserService
 
         public async Task<List<BLUser>> GetListUser()
         {
-            return await _context.BLUsers.ToListAsync();
+            return await _context.BLUsers.Include(e=>e.SinhVien).ToListAsync();
         }
 
         public async Task<BLUser> GetUserID(int Id)
         {
-            var result = await _context.BLUsers.FindAsync(Id);
+            var result = await _context.BLUsers.FirstOrDefaultAsync(e=>e.Id==Id);
             if (result == null)
                 return null;
             return result;
@@ -118,7 +120,29 @@ namespace BlzSinhVien.Server.Service.UserService
         {
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
         }
-        public async Task<BLUser> UpdateUser(BLUserPasswordRequest user)
+        public async Task<List<BLUser>> UpdateUser(int Id,BLUser user)
+        {
+            try
+            {
+                var request = await _context.BLUsers.FirstOrDefaultAsync(u => u.Id == Id);
+                if (request == null )
+                {
+                    return null;
+                }
+                else
+                {
+                    request.ChucVuId = user.ChucVuId;
+                    request.Role = user.Role;
+                    await _context.SaveChangesAsync();
+                }
+                return await _context.BLUsers.ToListAsync();
+            }
+            catch
+            {
+                return null;
+            }
+        }
+        public async Task<BLUser> UpdatePass(BLUserPasswordRequest user)
         {
             try
             {
