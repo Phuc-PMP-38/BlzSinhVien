@@ -1,0 +1,212 @@
+﻿@inject IKhoaHocService KhoaHocService
+@inject IGiaoVienService GiaoVienService 
+@inject IChucVuService ChucVuService 
+@inject ISnackbar Snackbar
+@using MudBlazor.Services
+<div id="unique_id_scroll_section" class="ma-0 dia-3" style="height:auto;overflow: auto;">
+<MudPaper Width="100%" Square="true" Class="mud-theme-primary">
+@if(Id == 0)
+{
+    
+    <h1 style="text-align:center">Create Giáo Viên</h1>
+    <EditForm Model="@user" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudStack id="rep-2"  Class="rep-1" Row="true">
+    <MudPaper Class="pa-3" width="100%">
+            <MudItem xs="20" sm="15">
+                <MudCard>
+                    <MudCardContent>
+                         <MudTextField Label="Email" HelperText="Max. 8 characters"
+                                      @bind-Value="user.EmailAddress" For="@(() => user.EmailAddress)"/>
+                        @if(Id==0){
+                        <MudTextField Label="PassWord" HelperText="Max. 8 characters"
+                                      @bind-Value="user.Password" For="@(() => user.Password)" InputType="InputType.Password"/>
+                        <MudTextField Label="ConfirmPassword" HelperText="Max. 8 characters"
+                                      @bind-Value="user.ConfirmPassword" For="@(() => user.ConfirmPassword)" InputType="InputType.Password"/>
+                        }
+                        <MudSelect @bind-Value="_selectedDepartment" Label="Select Department" OffsetY="true">
+                            @foreach (var department in listchucvu){
+                                  <MudSelectItem T=int? Value="@department.Id">@department.RoleDesc</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudCardContent>
+                    <MudText Color="Color.Error">@messerror</MudText>
+                </MudCard> 
+            </MudItem>
+        </MudPaper>
+    <MudPaper Class="pa-3" Width="100%">
+                    <MudTextField Label="Mã Giáo Viên" HelperText="Max. 8 characters" MaxLength="8"
+                                  @bind-Value="user.GiaoVien.MaGiaoVien" For="@(() => user.GiaoVien.MaGiaoVien)"/>
+                    <MudTextField Label="FistName" HelperText="Max. 8 characters"
+                                  @bind-Value="user.GiaoVien.FistName" For="@(() => user.GiaoVien.FistName)"/>
+                    <MudTextField Label="LastName" HelperText="Max. 8 characters"
+                                  @bind-Value="user.GiaoVien.LastName" For="@(() => user.GiaoVien.LastName)"/>
+                    <MudDatePicker Label="Ngày Sinh" @bind-Date="@user.GiaoVien.NgaySinh" DateFormat="dd/MM/yyyy" />
+                    <MudText Style="font:inherit">Giới Tính</MudText>
+                    <MudRadioGroup @bind-SelectedOption="@user.GiaoVien.GioiTinh">
+                        <MudRadio Option="@("Nam")" Color="Color.Primary">Nam</MudRadio>
+                        <MudRadio Option="@("Nữ")" Color="Color.Secondary">Nữ</MudRadio>
+                    </MudRadioGroup>
+
+                    <MudTextField Label="Dan Toc" HelperText="Max. 8 characters"
+                                  @bind-Value="user.GiaoVien.DanToc" For="@(() => user.GiaoVien.DanToc)"/>
+                    <MudTextField Label="Dia Chi" HelperText="Max. 8 characters"
+                                  @bind-Value="user.GiaoVien.DiaChi" For="@(() => user.GiaoVien.DiaChi)"/>
+                    <MudTextField   Label="So dien thoai" HelperText="Max. 10 characters" MaxLength="10"
+                                  @bind-Value="user.GiaoVien.SoDienThoai" For="@(() => user.GiaoVien.SoDienThoai)"/>
+                    <MudSelect @bind-Value="_selectedDepartmentKhoa" Label="Khoa" OffsetY="true"  AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var item in listkhoa){    
+                          <MudSelectItem T=int? Value="@item.Id">@item.TenKhoa</MudSelectItem>
+                    }   
+                    </MudSelect>
+    </MudPaper>
+        </MudStack>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+            
+</EditForm>
+
+}
+else
+{
+    <h1 style="text-align:center">Update Giáo Viên</h1>
+    <EditForm Model="@giaovien" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudPaper Width="100%">
+        <MudItem xs="20" sm="15">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Mã Giáo Viên" HelperText="Max. 8 characters" MaxLength="8"
+                                  @bind-Value="giaovien.MaGiaoVien" For="@(() =>giaovien.MaGiaoVien)" Disabled=true/>
+                    <MudTextField Label="FistName" HelperText="Max. 8 characters"
+                                  @bind-Value="giaovien.FistName" For="@(() => giaovien.FistName)"/>
+                    <MudTextField Label="LastName" HelperText="Max. 8 characters"
+                                  @bind-Value="giaovien.LastName" For="@(() => giaovien.LastName)"/>
+                    <MudDatePicker Label="Ngày Sinh" @bind-Date="@giaovien.NgaySinh" DateFormat="dd/MM/yyyy" />
+                    <MudText Style="font:inherit">Giới Tính</MudText>
+                    <MudRadioGroup @bind-SelectedOption="@giaovien.GioiTinh">
+                        <MudRadio Option="@("Nam")" Color="Color.Primary">Nam</MudRadio>
+                        <MudRadio Option="@("Nữ")" Color="Color.Secondary">Nữ</MudRadio>
+                    </MudRadioGroup>
+
+                    <MudTextField Label="Dan Toc" HelperText="Max. 8 characters"
+                                  @bind-Value="giaovien.DanToc" For="@(() => giaovien.DanToc)"/>
+                    <MudTextField Label="Dia Chi" HelperText="Max. 8 characters"
+                                  @bind-Value="giaovien.DiaChi" For="@(() => giaovien.DiaChi)"/>
+                    <MudTextField   Label="So dien thoai" HelperText="Max. 10 characters" MaxLength="10"
+                                  @bind-Value="giaovien.SoDienThoai" For="@(() =>giaovien.SoDienThoai)"/>
+                    <MudSelect @bind-Value="_selectedDepartmentKhoa" Label="Giáo Viên" OffsetY="true"  AnchorOrigin="Origin.BottomCenter">
+
+                    @foreach (var item in listkhoa){
+                          <MudSelectItem T=int? Value="@item.Id">@item.TenKhoa</MudSelectItem>
+                    }   
+                    </MudSelect>
+
+                </MudCardContent>
+                </MudCard> 
+        </MudItem>
+    </MudPaper>
+    <MudCardActions>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+            <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+    </MudCardActions>  
+</EditForm>
+}
+</MudPaper>
+</div>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public UserRegisterRequestGV user { get; set; } = new UserRegisterRequestGV();
+    [Parameter] public int Id { get; set; }
+    private List<BLChucVu> listchucvu = new List<BLChucVu>();
+    private List<BLGiaoVien> listgiaovien = new List<BLGiaoVien>();
+    private BLGiaoVien giaovien = new BLGiaoVien();
+    private List<BLKhoa> listkhoa = new List<BLKhoa>();
+    void Cancel() => MudDialog.Cancel();
+    public string action = string.Empty;
+    int? _selectedDepartment = 1;
+    int? _selectedDepartmentKhoa = 1;
+    private string messerror = string.Empty;
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(Id == 0)
+        {
+            if(!GiaoVienService.GiaoVien.Any(e=>e.MaGiaoVien == user.GiaoVien.MaGiaoVien)){
+                if (_selectedDepartment.HasValue && _selectedDepartmentKhoa.HasValue)
+                {
+                    user.ChucVuId = _selectedDepartment.Value;
+                    user.GiaoVien.KhoaId = _selectedDepartmentKhoa.Value;
+                    if (user.GiaoVien.MaGiaoVien != null&& user.GiaoVien.FistName != null&& user.GiaoVien.LastName != null
+                    && user.GiaoVien.GioiTinh != null&& user.GiaoVien.DanToc != null&& user.GiaoVien.DiaChi != null&& user.GiaoVien.SoDienThoai != null)  {
+                        listchucvu.ForEach(e => { if (e.Id == user.ChucVuId ) { user.Role = e.RoleDesc; user.MaRole = e.MaRole; } });
+                        await GiaoVienService.Create(user);
+                        StateHasChanged();
+                        Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                        Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
+                        Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;    
+                        Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+                        MudDialog.Close(DialogResult.Ok(true));
+                    }else{
+                        messerror = "Mời nhập dữ liệu Giáo Viên ";
+                    }
+                }else{
+                    messerror = "Lỗi! ";
+                }     
+
+            }
+            else
+            {
+                messerror = "Mã Giáo Viên đã tồn tại";
+            }
+        }
+        else
+        {
+            if (_selectedDepartmentKhoa.HasValue)
+            {
+                giaovien.KhoaId = _selectedDepartmentKhoa.Value;
+            }   
+            await GiaoVienService.Update(giaovien);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+
+
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        action = Id == 0 ? "Create Giáo Viên" : "Update Giáo Viên";
+        await KhoaHocService.GetKhoa();
+        listkhoa = KhoaHocService.ListKhoa;
+        await ChucVuService.GetMaRole("GiaoVien");
+        listchucvu = ChucVuService.ChucVu;
+        await GiaoVienService.GetGiaoVien();
+        listgiaovien = GiaoVienService.GiaoVien;
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            user = new UserRegisterRequestGV();
+        }
+        else
+        {
+            var request = await GiaoVienService.GetId((int)Id);
+            if(request != null)
+            {
+                BLGiaoVien checkgiaovien = request;
+                if(checkgiaovien!=null)
+                {
+                    giaovien = checkgiaovien;
+                    _selectedDepartmentKhoa = checkgiaovien.KhoaId;
+                }
+            }
+            
+        }
+    }
+}

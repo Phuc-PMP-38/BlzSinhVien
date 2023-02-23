@@ -62,3 +62,82 @@ a, .btn-link {
     .blazor-error-boundary::after {
         content: "An error has occurred."
     }
+.center-1 {
+    margin-top: 100px;
+}
+@media (max-width: 540px) {
+            .center-1 {
+                margin-top: 20px;
+            }
+        #rep-2 {
+            flex-direction: column !important;
+        }
+        .cl-3 {
+            border-right: none !important;
+            width: 100%;
+        }
+        .cl-2 {
+            flex-direction: column;
+        }
+            .login-1 {
+                width: 200px !important;
+                height: 200px !important;
+            }
+        .img-size {
+            width: 100%;
+            height: 325px !important;
+        }
+        .img-1 {
+            width: 90%;
+            height: 250px;
+            margin-left: 10px;
+        }
+        .item-1 {
+            padding: 0px !important;
+            margin-left: 20px !important;
+        }
+        .row > * {
+            padding-left: calc(var(--bs-gutter-x) * 1.5);
+        }
+        .grid-1 {
+            width: 100% !important;
+            margin:0;
+        }
+        .dia-3 {
+            height: 635px !important
+        }
+        .font-5 {
+            font-size: large;
+        }
+    }
+@media (max-width: 1024px) {
+    .center-1 {
+        margin-top: 50px;
+    }
+    .login-1 {
+        width: 240px;
+        height: 345px;
+    }
+}
+.input-icons i {
+    position: absolute;
+}
+
+.input-icons {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.icon {
+    padding: 10px;
+    color: green;
+    min-width: 50px;
+    text-align: center;
+}
+
+.input-field {
+    width: 100%;
+    padding: 10px;
+    text-align: center;
+}
+          

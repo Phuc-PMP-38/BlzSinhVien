@@ -1,4 +1,5 @@
 ﻿using BlzSinhVien.Shared.Model;
+using BlzSinhVien.Shared.Model.User;
 
 namespace BlzSinhVien.Client.Service.SinhVienService
 {
@@ -7,11 +8,10 @@ namespace BlzSinhVien.Client.Service.SinhVienService
         List<BLSinhVien> SinhVien { get; set; }
         List<BLLopHoc> Lophoc { get; set; }
         Task GetSinhVien();
-        Task Create(BLSinhVien sinhvien);
+        Task Create(UserRegisterRequest sinhvien);
         Task GetLopHoc();
         Task<BLSinhVien> GetId(int id);
         Task Update(BLSinhVien sinhvien);
         Task Delete(int id);
-        Task<BLSinhVien> GetEmailSinhVien(string email);
     }
 }

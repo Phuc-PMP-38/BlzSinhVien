@@ -1,11 +1,13 @@
 ﻿@page "/index"
 @inject IJSRuntime js
-
+@inject BLUserSession userState
+@attribute [Authorize(Roles ="Admin,User")]
 <PageTitle>Index</PageTitle>
 
 <AuthorizeView>
     <Authorized>
-        <h1>Hello, @context.User.Identity.Name!</h1>
+        <h1>Hello, @GetString(context.User.Identity.Name) !</h1>
+        <h1>Hello, @userState.EmailAddress!</h1>
     </Authorized>
     <NotAuthorized>
         <h1>Hello, Guest!</h1>
@@ -26,16 +28,26 @@ Welcome to your new app.
 @code{
     [CascadingParameter]
     private Task<AuthenticationState> authenticationState { get; set; }
-
+    private string name = string.Empty;
+    private string? GetString(string name)
+    {
+        if (name != null)
+        {
+            return name;
+        }
+        return null;
+    }
     private async Task DisplayGreetingAlert()
     {
         var authState = await authenticationState;
         var message = string.Empty;
         if(authState != null && authState.User!=null && authState.User.Identity !=null)
         {
-             message = $"Hello {authState.User.Identity.Name} ";
+            message = $"Hello {authState.User.Identity.Name} ";
+            message = $"Hello {userState.EmailAddress} ";
+            Console.WriteLine(userState.EmailAddress);
         }
-      
         await js.InvokeVoidAsync("alert", message);
     }
+
 }

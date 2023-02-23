@@ -7,7 +7,7 @@
     <AuthorizeView Roles="Admin,User">
          <Authorized>
             <MudNavGroup Title="Settings" Expanded="true">
-                  <MudNavLink Href="/fetchdata"  Match="NavLinkMatch.Prefix">fetchdata</MudNavLink>
+                 <MudNavLink Href="/image" Match="NavLinkMatch.Prefix">Ảnh</MudNavLink>
             </MudNavGroup>
          </Authorized>
      </AuthorizeView>  
@@ -21,14 +21,45 @@
              <MudNavLink Href="/chucvu" Match="NavLinkMatch.Prefix">Chức Vụ</MudNavLink>
         </Authorized>
      </AuthorizeView>
-      <AuthorizeView Roles="Admin">
-        <Authorized>
-             <MudNavLink Href="/lophoc" Match="NavLinkMatch.Prefix">Lớp Học</MudNavLink>
-        </Authorized>
-     </AuthorizeView>
-       <AuthorizeView Roles="Admin">
+       <AuthorizeView Roles="Admin,User">
         <Authorized>
              <MudNavLink Href="/user" Match="NavLinkMatch.Prefix">User</MudNavLink>
         </Authorized>
      </AuthorizeView>
+     <AuthorizeView Roles="Admin,User">
+        <Authorized>
+             <MudNavLink Href="/lophoc" Match="NavLinkMatch.Prefix">Lớp Học</MudNavLink>
+        </Authorized>
+     </AuthorizeView>
+       <AuthorizeView Roles="Admin,User">
+        <Authorized>
+             <MudNavLink Href="/nganhhoc" Match="NavLinkMatch.Prefix">Ngành Học</MudNavLink>
+        </Authorized>
+     </AuthorizeView>
+      <AuthorizeView Roles="Admin">
+        <Authorized>
+             <MudNavLink Href="/khoa" Match="NavLinkMatch.Prefix">Khoa</MudNavLink>
+        </Authorized>
+     </AuthorizeView>
+     <AuthorizeView Roles="Admin,User">
+         <Authorized>
+                 <MudNavLink Href="/hocky" Match="NavLinkMatch.Prefix">Học Kỳ</MudNavLink>
+         </Authorized>
+     </AuthorizeView>  
+     <AuthorizeView Roles="Admin,User">
+         <Authorized>
+            <MudNavGroup Title="Quản Lý Giáo Viên" Expanded="true">
+                 <MudNavLink Href="/giaovien" Match="NavLinkMatch.Prefix">Giáo Viên</MudNavLink>
+            </MudNavGroup>
+         </Authorized>
+     </AuthorizeView>  
+      <AuthorizeView Roles="Admin,User">
+         <Authorized>
+            <MudNavGroup Title="Quản Lý Môn Học" Expanded="true">
+                 <MudNavLink Href="/monhoc" Match="NavLinkMatch.Prefix">Môn Học </MudNavLink>
+                 <MudNavLink Href="/monhockhoa" Match="NavLinkMatch.Prefix">Môn Học Khoa</MudNavLink>
+                 <MudNavLink Href="/monhocnganh" Match="NavLinkMatch.Prefix">Môn Học Chuyên Ngành</MudNavLink>
+            </MudNavGroup>
+         </Authorized>
+     </AuthorizeView>  
 </MudNavMenu>

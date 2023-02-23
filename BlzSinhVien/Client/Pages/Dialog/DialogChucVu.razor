@@ -18,13 +18,22 @@ else
         <MudItem xs="20" sm="15">
             <MudCard>
                 <MudCardContent>
-                    <MudTextField Label="Tên Chức Vụ" HelperText="Max. 8 characters"
+                    <MudSelect @bind-Value="enumValue" Label="Select User" HelperText="Enum" OpenIcon="@Icons.Material.Filled.VerifiedUser" AdornmentColor="Color.Secondary">
+                        @foreach (User item in Enum.GetValues(typeof(User)))
+                        {
+                            <MudSelectItem Value="@item">@item</MudSelectItem>
+                        }
+                    </MudSelect>
+                    <MudTextField Label="Quyền" HelperText="Max. 8 characters"
                                   @bind-Value="chucvu.RoleDesc" For="@(() => chucvu.RoleDesc)"/>
+                    <MudTextField Label="Chức Vụ" HelperText="Max. 8 characters"
+                                  @bind-Value="chucvu.TenChucVu" For="@(() => chucvu.TenChucVu)"/>
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
                     <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
                 </MudCardActions>
+                <MudText Color="Color.Error">@Messerror</MudText>
             </MudCard> 
         </MudItem>
     </MudPaper>
@@ -35,28 +44,46 @@ else
 
     [Parameter] public BLChucVu chucvu { get; set; } = new BLChucVu();
     [Parameter] public int Id { get; set; }
+    private User enumValue { get; set; } = User.SinhVien;
     void Cancel() => MudDialog.Cancel();
-    public string action = string.Empty;
+    private string Messerror = string.Empty;
+    private string action = string.Empty;
+    public enum User { GiaoVien,SinhVien }
     private async void OnValidSubmit(EditContext context)
     {
         if(Id == 0)
         {
+            chucvu.MaRole = enumValue.ToString();
             await ChucVuService.Create(chucvu);
-            StateHasChanged();
-            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
-            Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
-            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
-            Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(chucvu.Id));
+            if (ChucVuService.CheckError == true)
+            {
+                Messerror = ChucVuService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.MaxDisplayedSnackbars = 10;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(chucvu.Id));
+            }
         }
         else
         {
             await ChucVuService.Update(chucvu);
-            StateHasChanged();
-            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
-            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
-            Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(chucvu.Id));
+            if(ChucVuService.CheckError == true)
+            {
+                Messerror = ChucVuService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(chucvu.Id));
+            }
         }
     }
     protected override async Task OnParametersSetAsync()
@@ -69,10 +96,13 @@ else
         else
         {
             action ="Update Chức Vụ";
-            BLChucVu checkchucvu = await ChucVuService.GetId((int)Id);
-            if(checkchucvu!=null)
-            {
-                chucvu = checkchucvu;
+            var request = await ChucVuService.GetId((int)Id);
+            if(request!=null){
+                BLChucVu checkchucvu = request;
+                if(checkchucvu!=null)
+                {
+                    chucvu = checkchucvu;
+                }
             }
         }
     }

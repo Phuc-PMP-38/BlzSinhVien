@@ -1,0 +1,161 @@
+﻿@page "/monhockhoa"
+@inject IMonHocKhoaService MonHocKhoaService
+@inject IHocKyService HocKyService
+@inject IKhoaHocService KhoaHocService
+@inject IMonHocService MonHocService
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin,User")]
+
+<MudButton OnClick="@((e) => CreateMonHocKhoa(monhoc))" Variant="Variant.Filled" Color="Color.Primary">
+    Create Môn Học Khoa
+</MudButton>
+
+<MudDataGrid T="BLMonHocKhoa" Items="@listmonhoc" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
+    RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true"  EditTrigger="DataGridEditTrigger.Manual" >
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Môn Học</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="BLMonHocKhoa" />
+        <Column T="BLMonHocKhoa" Field="Id" Title="STT" Filterable="false"/>
+        <Column T="BLMonHocKhoa" Title="Tên Khoa">
+            <CellTemplate>
+                <MudText>@ListKhoa.Where(i=>i.Id == context.Item.KhoaId).Select(e=>e.TenKhoa).FirstOrDefault()</MudText>
+            </CellTemplate>
+        </Column>
+         <Column T="BLMonHocKhoa" Title="Tên Môn Học">
+            <CellTemplate>
+                <MudText>@ListMonHoc.Where(i=>i.Id == context.Item.MonHocID).Select(e=>e.TenMonHoc).FirstOrDefault()</MudText>
+            </CellTemplate>
+        </Column>
+        <Column T="BLMonHocKhoa" Field="NamHoc" Title="Năm Học"/>
+        <Column T="BLMonHocKhoa" CellClass="d-flex justify-end" Title="Action">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateMonHocKhoa(@context.Item.Id))" 
+                Color="Color.Primary" Variant="Variant.Filled"/> | 
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Delete" OnClick="@((e) => DeleteItem(context.Item.Id,Variant.Filled))" 
+                Color="Color.Error" Variant="Variant.Filled"/>
+            </CellTemplate>
+        </Column>
+    </Columns>
+    
+    <PagerContent>
+        <MudDataGridPager T="BLMonHocKhoa" />
+    </PagerContent>
+    
+</MudDataGrid>
+
+@code {
+    private List<BLMonHocKhoa> listmonhoc = new List<BLMonHocKhoa>();
+    private BLMonHocKhoa monhoc = new BLMonHocKhoa();
+    private string _searchString = string.Empty;
+    private bool _sortNameByLength = true;
+    private List<string> _events = new();
+    private bool _readOnly = true;
+    private List<BLHocKy> ListHocKy = new List<BLHocKy>();
+    private List<BLMonHoc> ListMonHoc = new List<BLMonHoc>();
+    private List<BLKhoa> ListKhoa = new List<BLKhoa>();
+    protected override async Task OnInitializedAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+        var token = await customAuthStateProvider.GetToken();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            if( MonHocKhoaService.MonHocKhoa != null && MonHocKhoaService.MonHocKhoa?.Count()>0 && MonHocService.MonHoc != null && MonHocService.MonHoc?.Count()>0 
+            && KhoaHocService.ListKhoa != null && KhoaHocService.ListKhoa?.Count() > 0)
+            {
+               listmonhoc = MonHocKhoaService.MonHocKhoa;
+               ListMonHoc = MonHocService.MonHoc;
+               ListKhoa = KhoaHocService.ListKhoa;
+            }
+            else
+            {
+                 await MonHocKhoaService.GetMonHocKhoa();
+                listmonhoc = MonHocKhoaService.MonHocKhoa;
+                await MonHocService.GetMonHoc();
+                ListMonHoc = MonHocService.MonHoc;
+                await KhoaHocService.GetKhoa();
+                ListKhoa = KhoaHocService.ListKhoa;
+            }
+        }
+        else
+            navManager.NavigateTo("/");
+    }
+    #region
+    // custom sort by name length
+    private Func<BLMonHocKhoa, object> _sortBy => x =>
+    {
+        if (_sortNameByLength)
+            return x.KhoaId.ToString().Length;
+        else
+            return x.KhoaId;
+    };
+    // quick filter - filter gobally across multiple columns with the same input
+    private Func<BLMonHocKhoa, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+        if (x.KhoaId.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (x.Id.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (x.MonHocID.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if ($"{x.Id.ToString()} {x.MonHocID.ToString()}{x.KhoaId.ToString()}".Contains(_searchString))
+            return true;
+
+        return false;
+    };
+
+
+    // events
+    void RowClicked(DataGridRowClickEventArgs<BLMonHocKhoa> args)
+    {
+        _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    void SelectedItemsChanged(HashSet<BLMonHocKhoa> items)
+    {
+        _events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+    }
+
+    #endregion
+
+    async Task DeleteItem(int id,Variant variant)
+    {
+        Snackbar.Add($"Đã xóa thành công ", Severity.Success);
+        await MonHocKhoaService.Delete(id);
+        listmonhoc = MonHocKhoaService.MonHocKhoa;
+
+    }
+    async Task CreateMonHocKhoa(BLMonHocKhoa monhoc)
+    {
+        var parameters = new DialogParameters { ["monhoc"]=monhoc};
+
+        var dialog = DialogService.Show<DialogMonHocKhoa>("Create Môn Học Khoa", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            listmonhoc = MonHocKhoaService.MonHocKhoa;
+            monhoc = new BLMonHocKhoa();
+        }
+    }
+     async Task UpdateMonHocKhoa(int Id)
+    {
+        var parameters = new DialogParameters { ["Id"]=Id};
+
+        var dialog = DialogService.Show<DialogMonHocKhoa>("Update Môn Học Khoa", parameters);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            listmonhoc = MonHocKhoaService.MonHocKhoa;
+        }
+        monhoc = new BLMonHocKhoa();
+    }
+}

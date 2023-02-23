@@ -21,12 +21,6 @@ namespace BlzSinhVien.Server.Authentication
         {
             if (string.IsNullOrWhiteSpace(EmailAddress) || string.IsNullOrWhiteSpace(password))
                 return null;
-
-            ///* Validating the User Credentials */
-            //var userAccount = _context.BLUsers.FirstOrDefault(x => x.EmailAddress == EmailAddress);
-            //if (userAccount == null || userAccount.Password != password)
-            //    return null;
-
             /* Generating JWT Token */
             var tokenExpiryTimeStamp = DateTime.Now.AddMinutes(JWT_TOKEN_VALIDITY_MINS);
             var tokenKey = Encoding.ASCII.GetBytes(JWT_SECURITY_KEY);
@@ -52,10 +46,12 @@ namespace BlzSinhVien.Server.Authentication
             /* Returning the User Session object */
             var userSession = new UserSession
             {
+                UserId = userAccount.Id,
                 UserName = userAccount.EmailAddress,
                 Role = userAccount.Role,
                 Token = token,
-                ExpiresIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.Now).TotalSeconds
+                ExpiresIn = (int)tokenExpiryTimeStamp.Subtract(DateTime.Now).TotalSeconds,
+                ExpiryTimeStamp = DateTime.Now
             };
             return userSession;
         }

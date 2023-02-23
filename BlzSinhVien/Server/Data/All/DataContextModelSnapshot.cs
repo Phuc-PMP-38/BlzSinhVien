@@ -30,12 +30,156 @@ namespace BlzSinhVien.Server.Data.All
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
 
+                    b.Property<string>("MaRole")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("RoleDesc")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TenChucVu")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
                     b.ToTable("ChucVus");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLGiangDuong", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("Action")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("GiaoVienId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HocKyId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("LopHocId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MaHocPhan")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MonHocChuyenNganhId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GiaoVienId");
+
+                    b.HasIndex("HocKyId");
+
+                    b.HasIndex("LopHocId");
+
+                    b.HasIndex("MonHocChuyenNganhId");
+
+                    b.ToTable("GiangDuongs");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLGiaoVien", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("DanToc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DiaChi")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FistName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GioiTinh")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("KhoaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MaGiaoVien")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("NgaySinh")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SoDienThoai")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UsersId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KhoaId");
+
+                    b.HasIndex("UsersId")
+                        .IsUnique();
+
+                    b.ToTable("GiaoViens");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLHocKy", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("HocKyIn")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HocKyOn")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HocKyOut")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("HocKys");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLKhoa", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("TenKhoa")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Khoa");
                 });
 
             modelBuilder.Entity("BlzSinhVien.Shared.Model.BLLopHoc", b =>
@@ -49,12 +193,118 @@ namespace BlzSinhVien.Server.Data.All
                     b.Property<string>("MaLopHoc")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("NganhHocId")
+                        .HasColumnType("int");
+
                     b.Property<string>("TenLopHoc")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("NganhHocId");
+
                     b.ToTable("LopHocs");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLMonHoc", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<string>("MaMonHoc")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("SoTietLyThuyet")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SoTietThucHanh")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SoTinChi")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TenMonHoc")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("MonHocs");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLMonHocChuyenNganh", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("MonHocKhoaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NamHoc")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NganhHocId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("MonHocKhoaId");
+
+                    b.HasIndex("NganhHocId");
+
+                    b.ToTable("MonHocChuyenNganhs");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLMonHocKhoa", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("KhoaId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MonHocID")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NamHoc")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KhoaId");
+
+                    b.HasIndex("MonHocID");
+
+                    b.ToTable("MonHocKhoa");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLNganhHoc", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"), 1L, 1);
+
+                    b.Property<int>("KhoaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("TenNganh")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("KhoaId");
+
+                    b.ToTable("NganhHocs");
                 });
 
             modelBuilder.Entity("BlzSinhVien.Shared.Model.BLSinhVien", b =>
@@ -73,7 +323,21 @@ namespace BlzSinhVien.Server.Data.All
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("FistName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("GiaoViensId")
+                        .HasColumnType("int");
+
                     b.Property<string>("GioiTinh")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("HocKyId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LastName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -82,7 +346,8 @@ namespace BlzSinhVien.Server.Data.All
 
                     b.Property<string>("MaSinhVien")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(11)
+                        .HasColumnType("nvarchar(11)");
 
                     b.Property<DateTime?>("NgaySinh")
                         .HasColumnType("datetime2");
@@ -91,14 +356,14 @@ namespace BlzSinhVien.Server.Data.All
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("TenSinhVien")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GiaoViensId");
+
+                    b.HasIndex("HocKyId");
 
                     b.HasIndex("LopHocId");
 
@@ -142,8 +407,132 @@ namespace BlzSinhVien.Server.Data.All
                     b.ToTable("BLUsers");
                 });
 
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLGiangDuong", b =>
+                {
+                    b.HasOne("BlzSinhVien.Shared.Model.BLGiaoVien", "GiaoVien")
+                        .WithMany("GiangDuongs")
+                        .HasForeignKey("GiaoVienId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlzSinhVien.Shared.Model.BLHocKy", "HocKy")
+                        .WithMany()
+                        .HasForeignKey("HocKyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlzSinhVien.Shared.Model.BLLopHoc", "LopHoc")
+                        .WithMany("GiangDuongs")
+                        .HasForeignKey("LopHocId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlzSinhVien.Shared.Model.BLMonHocChuyenNganh", "MonHocChuyenNganh")
+                        .WithMany("GiangDuongs")
+                        .HasForeignKey("MonHocChuyenNganhId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("GiaoVien");
+
+                    b.Navigation("HocKy");
+
+                    b.Navigation("LopHoc");
+
+                    b.Navigation("MonHocChuyenNganh");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLGiaoVien", b =>
+                {
+                    b.HasOne("BlzSinhVien.Shared.Model.BLKhoa", "Khoa")
+                        .WithMany()
+                        .HasForeignKey("KhoaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlzSinhVien.Shared.Model.User.BLUser", "Users")
+                        .WithOne("GiaoVien")
+                        .HasForeignKey("BlzSinhVien.Shared.Model.BLGiaoVien", "UsersId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Khoa");
+
+                    b.Navigation("Users");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLLopHoc", b =>
+                {
+                    b.HasOne("BlzSinhVien.Shared.Model.BLNganhHoc", "NganhHoc")
+                        .WithMany("LopHoc")
+                        .HasForeignKey("NganhHocId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NganhHoc");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLMonHocChuyenNganh", b =>
+                {
+                    b.HasOne("BlzSinhVien.Shared.Model.BLMonHocKhoa", "MonHocKhoa")
+                        .WithMany()
+                        .HasForeignKey("MonHocKhoaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlzSinhVien.Shared.Model.BLNganhHoc", "NganhHoc")
+                        .WithMany("MonHocChuyenNganh")
+                        .HasForeignKey("NganhHocId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("MonHocKhoa");
+
+                    b.Navigation("NganhHoc");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLMonHocKhoa", b =>
+                {
+                    b.HasOne("BlzSinhVien.Shared.Model.BLKhoa", "Khoa")
+                        .WithMany()
+                        .HasForeignKey("KhoaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("BlzSinhVien.Shared.Model.BLMonHoc", "MonHoc")
+                        .WithMany("MonHocKhoa")
+                        .HasForeignKey("MonHocID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Khoa");
+
+                    b.Navigation("MonHoc");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLNganhHoc", b =>
+                {
+                    b.HasOne("BlzSinhVien.Shared.Model.BLKhoa", "Khoa")
+                        .WithMany("NganhHoc")
+                        .HasForeignKey("KhoaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Khoa");
+                });
+
             modelBuilder.Entity("BlzSinhVien.Shared.Model.BLSinhVien", b =>
                 {
+                    b.HasOne("BlzSinhVien.Shared.Model.BLGiaoVien", "GiaoViens")
+                        .WithMany()
+                        .HasForeignKey("GiaoViensId");
+
+                    b.HasOne("BlzSinhVien.Shared.Model.BLHocKy", "HocKy")
+                        .WithMany()
+                        .HasForeignKey("HocKyId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("BlzSinhVien.Shared.Model.BLLopHoc", "LopHoc")
                         .WithMany("SinhViens")
                         .HasForeignKey("LopHocId");
@@ -151,6 +540,10 @@ namespace BlzSinhVien.Server.Data.All
                     b.HasOne("BlzSinhVien.Shared.Model.User.BLUser", "User")
                         .WithOne("SinhVien")
                         .HasForeignKey("BlzSinhVien.Shared.Model.BLSinhVien", "UserId");
+
+                    b.Navigation("GiaoViens");
+
+                    b.Navigation("HocKy");
 
                     b.Navigation("LopHoc");
 
@@ -160,7 +553,7 @@ namespace BlzSinhVien.Server.Data.All
             modelBuilder.Entity("BlzSinhVien.Shared.Model.User.BLUser", b =>
                 {
                     b.HasOne("BlzSinhVien.Shared.Model.BLChucVu", "ChucVu")
-                        .WithMany("Users")
+                        .WithMany()
                         .HasForeignKey("ChucVuId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -168,18 +561,44 @@ namespace BlzSinhVien.Server.Data.All
                     b.Navigation("ChucVu");
                 });
 
-            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLChucVu", b =>
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLGiaoVien", b =>
                 {
-                    b.Navigation("Users");
+                    b.Navigation("GiangDuongs");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLKhoa", b =>
+                {
+                    b.Navigation("NganhHoc");
                 });
 
             modelBuilder.Entity("BlzSinhVien.Shared.Model.BLLopHoc", b =>
                 {
+                    b.Navigation("GiangDuongs");
+
                     b.Navigation("SinhViens");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLMonHoc", b =>
+                {
+                    b.Navigation("MonHocKhoa");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLMonHocChuyenNganh", b =>
+                {
+                    b.Navigation("GiangDuongs");
+                });
+
+            modelBuilder.Entity("BlzSinhVien.Shared.Model.BLNganhHoc", b =>
+                {
+                    b.Navigation("LopHoc");
+
+                    b.Navigation("MonHocChuyenNganh");
                 });
 
             modelBuilder.Entity("BlzSinhVien.Shared.Model.User.BLUser", b =>
                 {
+                    b.Navigation("GiaoVien");
+
                     b.Navigation("SinhVien");
                 });
 #pragma warning restore 612, 618

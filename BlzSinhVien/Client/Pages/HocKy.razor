@@ -1,0 +1,138 @@
+﻿@page "/hocky"
+@using BlzSinhVien.Client.Pages.Dialog
+@inject IHocKyService HocKyService
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin,User")]
+
+
+<MudButton OnClick="@((e) => CreateHocKy(hocky))" Variant="Variant.Filled" Color="Color.Primary">
+    Create Học Kỳ
+</MudButton>
+
+<MudDataGrid T="BLHocKy" Items="@listhocky" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
+    RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true"  EditTrigger="DataGridEditTrigger.Manual" >
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Học Kỳ</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="BLHocKy" />
+        <Column T="BLHocKy" Field="Id" Title="STT" Filterable="false"/>
+        <Column T="BLHocKy" Field="HocKy" Title="Năm "/>
+        <Column T="BLHocKy" Field="HocKyOut" Title="Phân Loại"/>
+        <Column T="BLHocKy" CellClass="d-flex justify-end" Title="Action">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateHocKy(@context.Item.Id))" 
+                Color="Color.Primary" Variant="Variant.Filled"/> | 
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Delete" OnClick="@((e) => DeleteItem(context.Item.Id,Variant.Filled))" 
+                Color="Color.Error" Variant="Variant.Filled"/>
+            </CellTemplate>
+        </Column>
+    </Columns>
+    
+    <PagerContent>
+        <MudDataGridPager T="BLHocKy" />
+    </PagerContent>
+    
+</MudDataGrid>
+<MudText>
+    Phân loại : 
+    1.Năm học
+    2.Năm Học Sinh Viên 
+</MudText>
+@code {
+    private List<BLHocKy> listhocky = new List<BLHocKy>();
+    private BLHocKy hocky = new BLHocKy();
+    private string _searchString = string.Empty;
+    private bool _sortNameByLength = true;
+    private List<string> _events = new();
+    private bool _readOnly = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+        var token = await customAuthStateProvider.GetToken();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            await HocKyService.GetHocKy();
+            listhocky = HocKyService.HocKy;
+        }
+        else
+            navManager.NavigateTo("/");
+    }
+    #region
+    // custom sort by name length
+    private Func<BLHocKy, object> _sortBy => x =>
+    {
+        if (_sortNameByLength)
+            return x.HocKy.Length;
+        else
+            return x.HocKy;
+    };
+    // quick filter - filter gobally across multiple columns with the same input
+    private Func<BLHocKy, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.HocKy.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (x.Id.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if ($"{x.Id.ToString()} {x.HocKy} ".Contains(_searchString))
+            return true;
+
+        return false;
+    };
+
+
+    // events
+    void RowClicked(DataGridRowClickEventArgs<BLHocKy> args)
+    {
+        _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    void SelectedItemsChanged(HashSet<BLHocKy> items)
+    {
+        _events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+    }
+
+    #endregion
+
+    async Task DeleteItem(int id,Variant variant)
+    {
+        Snackbar.Add($"Đã xóa thành công ", Severity.Success);
+        await HocKyService.Delete(id);
+        listhocky = HocKyService.HocKy;
+
+    }
+    async Task CreateHocKy(BLHocKy hocky)
+    {
+        var parameters = new DialogParameters { ["hocky"]=hocky};
+
+        var dialog = DialogService.Show<DialogHocKy>("Create Học Kỳ", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            listhocky = HocKyService.HocKy;
+            hocky = new BLHocKy();
+        }
+    }
+     async Task UpdateHocKy(int Id)
+    {
+        var parameters = new DialogParameters { ["Id"]=Id};
+
+        var dialog = DialogService.Show<DialogHocKy>("Update Học Kỳ", parameters);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            listhocky = HocKyService.HocKy;
+        }
+        hocky = new BLHocKy();
+    }
+}

@@ -13,7 +13,7 @@ namespace BlzSinhVien.Server.Service.LopHocService
             _context = context;
         }
 
-        public async Task<List<BLLopHoc>> CreateLH(BLLopHoc lophoc)
+        public async Task<List<BLLopHoc>?> CreateLH(BLLopHoc lophoc)
         {
             try
             {
@@ -24,16 +24,16 @@ namespace BlzSinhVien.Server.Service.LopHocService
             }
             catch
             {
-                return await _context.LopHocs.ToListAsync();
+                return null;
             }
         }
 
-        public async Task<List<BLLopHoc>> DeleteLH(int Id)
+        public async Task<List<BLLopHoc>?> DeleteLH(int Id)
         {
             var result = await _context.LopHocs.FindAsync(Id);
             if (result == null)
             {
-                return await _context.LopHocs.ToListAsync();
+                return null;
             }
             _context.LopHocs.Remove(result);
             await _context.SaveChangesAsync();
@@ -45,7 +45,7 @@ namespace BlzSinhVien.Server.Service.LopHocService
             var result = await _context.LopHocs.ToListAsync();
             return result;
         }
-        public async Task<BLLopHoc> GetId(int Id)
+        public async Task<BLLopHoc?> GetId(int Id)
         {
             var result = await _context.LopHocs.FindAsync(Id);
             if(result == null)
@@ -55,21 +55,22 @@ namespace BlzSinhVien.Server.Service.LopHocService
             return result;
         }
 
-        public async Task<List<BLLopHoc>> UpdateLH(int Id, BLLopHoc lophoc)
+        public async Task<List<BLLopHoc>?> UpdateLH(int Id, BLLopHoc lophoc)
         {
             try
             {
                 var result = await _context.LopHocs.FindAsync(Id);
-                if(result == null)
-                    return await _context.LopHocs.ToListAsync();
+                if (result == null)
+                    return null;
                 result.TenLopHoc = lophoc.TenLopHoc;
                 result.MaLopHoc = lophoc.MaLopHoc;
+                result.NganhHocId = lophoc.NganhHocId;
                 await _context.SaveChangesAsync();
                 return await _context.LopHocs.ToListAsync();
             }
             catch
             {
-                return await _context.LopHocs.ToListAsync();
+                return null;
             }
         }
     }

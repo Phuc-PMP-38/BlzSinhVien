@@ -19,7 +19,7 @@ namespace BlzSinhVien.Server.Service.UserService
             _context = context;
         }
 
-        public async Task<List<BLUser>> CreateUser(UserRegisterRequest user)
+        public async Task<List<BLSinhVien>?> CreateUser(UserRegisterRequest user)
         {
             if (_context.BLUsers.Any(u => u.EmailAddress == user.EmailAddress))
             {
@@ -28,24 +28,53 @@ namespace BlzSinhVien.Server.Service.UserService
             CreatePasswordHash(user.Password,
                  out byte[] passwordHash,
                  out byte[] passwordSalt);
-
-            var user1 = new BLUser
+            BLUser bLUser = new BLUser
+                {
+                    EmailAddress = user.EmailAddress,
+                    PasswordHash = passwordHash,
+                    PasswordSalt = passwordSalt,
+                    Role = user.Role,
+                    ChucVuId = user.ChucVuId,
+                    SinhVien = user.SinhVien,
+                    ResetTokenExpires = DateTime.Now
+                };
+                _context.BLUsers.Add(bLUser);
+                await _context.SaveChangesAsync();
+            return await _context.SinhViens.ToListAsync();
+        }
+        public async Task<List<BLGiaoVien>?> CreateUserGiaoVien(UserRegisterRequestGV user)
+        {
+            try
             {
-                EmailAddress = user.EmailAddress,
-                PasswordHash = passwordHash,
-                PasswordSalt = passwordSalt,
-                Role = user.Role,
-                ChucVuId = user.ChucVuId
-
-            };
-
-            _context.BLUsers.Add(user1);
-            await _context.SaveChangesAsync();
-
-            return await _context.BLUsers.ToListAsync();
+                if (_context.BLUsers.Any(u => u.EmailAddress == user.EmailAddress))
+                {
+                    return null;
+                }
+                CreatePasswordHash(user.Password,
+                     out byte[] passwordHash,
+                     out byte[] passwordSalt);
+                BLUser  bLUser = new BLUser
+                {
+                        EmailAddress = user.EmailAddress,
+                        PasswordHash = passwordHash,
+                        PasswordSalt = passwordSalt,
+                        Role = user.Role,
+                        ChucVuId = user.ChucVuId,
+                        GiaoVien = user.GiaoVien,
+                        ResetTokenExpires = DateTime.Now
+                };
+                _context.BLUsers.Add(bLUser);
+                 await _context.SaveChangesAsync();
+                 return await _context.GiaoViens.ToListAsync();
+            }
+            catch
+            {
+                return null;
+            }
+            
         }
 
-        public async Task<List<BLUser>> DeleteUser(int Id)
+        public async Task<List<BLUser>?> DeleteUser(int Id)
         {
             var result = await _context.BLUsers.FindAsync(Id);
             if (result == null)
@@ -57,18 +86,18 @@ namespace BlzSinhVien.Server.Service.UserService
 
         public async Task<List<BLUser>> GetListUser()
         {
-            return await _context.BLUsers.Include(e=>e.SinhVien).ToListAsync();
+            return await _context.BLUsers.ToListAsync();
         }
 
-        public async Task<BLUser> GetUserID(int Id)
+        public async Task<BLUser?> GetUserID(int Id)
         {
-            var result = await _context.BLUsers.FirstOrDefaultAsync(e=>e.Id==Id);
+            var result = await _context.BLUsers.Include(i=>i.SinhVien).Include(i=>i.GiaoVien).FirstOrDefaultAsync(e=>e.Id==Id);
             if (result == null)
                 return null;
             return result;
         }
 
-        public async Task<UserSession> Login(BLUserLogin user)
+        public async Task<UserSession?> Login(BLUserLogin user)
         {
             try { 
                 var userSession = new UserSession();
@@ -87,9 +116,13 @@ namespace BlzSinhVien.Server.Service.UserService
                         {
                             return null;
                         }
+                        else
+                        {
+                            return userSession;
+                        }
                     }
                 }
-                return userSession;
+                return null;
             }
             catch
             {
@@ -120,7 +153,7 @@ namespace BlzSinhVien.Server.Service.UserService
         {
             return Convert.ToHexString(RandomNumberGenerator.GetBytes(64));
         }
-        public async Task<List<BLUser>> UpdateUser(int Id,BLUser user)
+        public async Task<List<BLUser>?> UpdateUser(int Id,BLUser user)
         {
             try
             {
@@ -142,15 +175,19 @@ namespace BlzSinhVien.Server.Service.UserService
                 return null;
             }
         }
-        public async Task<BLUser> UpdatePass(BLUserPasswordRequest user)
+        public async Task<BLUser?> UpdatePass(BLUserPasswordRequest user)
         {
             try
             {
                 var request = await _context.BLUsers.FirstOrDefaultAsync(u => u.EmailAddress == user.Email);
+                if (request == null)
+                {
+                    return null;
+                }
                 var requestPass = VerifyPasswordHash(user.Password, request.PasswordHash, request.PasswordSalt);
                 if (request == null || requestPass == false)
                 {
-                    return new BLUser();
+                    return null;
                 }
                 else
                 {
@@ -165,8 +202,17 @@ namespace BlzSinhVien.Server.Service.UserService
             }
             catch
             {
-                return new BLUser();
+                return null;
             }
+        }
+        public async Task<BLUser?> GetUserEmail(string email)
+        {
+            var result = await _context.BLUsers.Include(i=>i.SinhVien).Include(i => i.GiaoVien).Include(e=>e.ChucVu).FirstOrDefaultAsync(e => e.EmailAddress == email);
+            if(result == null)
+            {
+                return null;
+            }
+            return result;     
         }
     }
 }

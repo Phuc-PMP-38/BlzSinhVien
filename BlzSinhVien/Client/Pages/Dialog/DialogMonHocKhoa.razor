@@ -1,0 +1,139 @@
+﻿@inject IMonHocKhoaService MonHocKhoaService
+@inject IHocKyService HocKyService
+@inject IKhoaHocService KhoaHocService
+@inject IMonHocService MonHocService
+@inject ISnackbar Snackbar
+@using MudBlazor.Services
+
+<MudPaper Width="100%" Square="true" Class="mud-theme-primary">
+@if(Id == 0)
+{
+    
+    <h1 style="text-align:center">Create Môn Học Khoa</h1>
+}
+else
+{
+    <h1 style="text-align:center">Update Môn Học Khoa</h1>
+}
+<EditForm Model="@monhoc" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudPaper Width="100%">
+        <MudItem xs="20" sm="15">
+            <MudCard>
+                <MudCardContent>
+                     <MudSelect @bind-Value="_selectedDepartment" Label="Tên Khoa" OffsetY="true">
+                            @foreach (var department in ListKhoa){
+                                  <MudSelectItem T=int? Value="@department.Id">@department.TenKhoa</MudSelectItem>
+                            }
+                     </MudSelect>
+                     <MudSelect @bind-Value="_selectedDepartment1" Label="Tên Môn Học" OffsetY="true">
+                            @foreach (var department in ListMonHoc){
+                                  <MudSelectItem T=int? Value="@department.Id">@department.TenMonHoc</MudSelectItem>
+                            }
+                     </MudSelect>
+                     <MudSelect @bind-Value="_selectedDepartment2" Label="Năm" OffsetY="true">
+                             @foreach (var item in namhoc)
+                            {
+                                <MudSelectItem T="int?" Value="@item" />
+                            }
+                     </MudSelect>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+                <MudText Color="Color.Error">@Messerror</MudText>
+            </MudCard> 
+        </MudItem>
+    </MudPaper>
+</EditForm>
+</MudPaper>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public BLMonHocKhoa monhoc { get; set; } = new BLMonHocKhoa();
+    [Parameter] public int Id { get; set; }
+    private List<BLMonHoc> ListMonHoc = new List<BLMonHoc>();
+    private List<BLKhoa> ListKhoa = new List<BLKhoa>();
+    void Cancel() => MudDialog.Cancel();
+    public string action = string.Empty;
+    private string Messerror = string.Empty;
+    private int[] namhoc = { 1,2,3,4,5 };
+    int? _selectedDepartment = 1;
+    int? _selectedDepartment1 = 1;
+    int? _selectedDepartment2 = 1;
+    
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(Id == 0)
+        {
+            if(_selectedDepartment.HasValue && _selectedDepartment1.HasValue && _selectedDepartment2.HasValue)
+            {
+                monhoc.NamHoc = _selectedDepartment2.Value;
+                monhoc.KhoaId = _selectedDepartment.Value;
+                monhoc.MonHocID = _selectedDepartment1.Value;
+            }
+            await MonHocKhoaService.Create(monhoc);
+            if (MonHocKhoaService.CheckError == true)
+            {
+                Messerror = MonHocKhoaService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+        else
+        {
+            if(_selectedDepartment.HasValue && _selectedDepartment1.HasValue && _selectedDepartment2.HasValue)
+            {
+                monhoc.NamHoc = _selectedDepartment2.Value;
+                monhoc.KhoaId = _selectedDepartment.Value;
+                monhoc.MonHocID = _selectedDepartment1.Value;
+            }
+            await MonHocKhoaService.Update(monhoc);
+            if (MonHocKhoaService.CheckError == true)
+            {
+                Messerror = MonHocKhoaService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {   
+        ListMonHoc = MonHocService.MonHoc;
+        ListKhoa = KhoaHocService.ListKhoa;
+        action = Id == 0 ? "Create Môn Học Khoa" : "Update Môn Học Khoa";
+        if (Id == 0)
+        {
+            monhoc = new BLMonHocKhoa();
+        }
+        else
+        {
+            var request = await MonHocKhoaService.GetId((int)Id);
+            if(request != null)
+            {
+                BLMonHocKhoa checkmonhoc = request;
+                if(checkmonhoc!=null)
+                {
+                    monhoc = checkmonhoc;
+                    _selectedDepartment2 = monhoc.NamHoc;
+                    _selectedDepartment = monhoc.KhoaId;
+                    _selectedDepartment1 = monhoc.MonHocID;
+                }
+            }
+            
+        }
+    }
+}

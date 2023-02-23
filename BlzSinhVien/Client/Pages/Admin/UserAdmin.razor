@@ -1,14 +1,8 @@
 ﻿@page "/user"
-@using BlzSinhVien.Client.Pages.Dialog
 @inject IUserService UserService
 @inject IChucVuService ChucVuService
 @inject ISnackbar Snackbar
 @attribute [Authorize(Roles = "Admin")]
-
-
-<MudButton OnClick="@((e) => CreateUser(user))" Variant="Variant.Filled" Color="Color.Primary">
-    Create User
-</MudButton>
 
 <MudDataGrid T="BLUser" Items="@listuser" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
     RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true" EditTrigger="DataGridEditTrigger.Manual" >
@@ -25,8 +19,6 @@
         <Column T="BLUser" Field="Role" Title="Quyền"/>
         <Column T="BLUser" CellClass="d-flex justify-end" Title="Action">
             <CellTemplate>
-                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateUser(@context.Item.Id))" 
-                Color="Color.Primary" Variant="Variant.Filled"/> | 
                 <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Delete" OnClick="@((e) => DeleteItem(context.Item.Id,Variant.Filled))" 
                 Color="Color.Error" Variant="Variant.Filled"/>
             </CellTemplate>
@@ -106,30 +98,5 @@
         await UserService.Delete(id);
         listuser = UserService.Listuser;
 
-    }
-    async Task CreateUser(BLUser users)
-    {
-        var parameters = new DialogParameters { ["users"]=users};
-        var dialog = DialogService.Show<DialogUsers>("Create User",parameters);
-        var result = await dialog.Result;
-
-        if (!result.Cancelled)
-        {
-            await UserService.GetUser();
-            listuser = UserService.Listuser;
-            user = new BLUser();
-        }
-    }
-    async Task UpdateUser(int Id)
-    {
-        var parameters = new DialogParameters { ["Id"]=Id};
-        var dialog = DialogService.Show<DialogUsers>("Update User", parameters);
-        var result = await dialog.Result;
-        if (!result.Cancelled)
-        {
-            await UserService.GetUser();
-            listuser = UserService.Listuser;
-        }
-        user = new BLUser();
     }
 }

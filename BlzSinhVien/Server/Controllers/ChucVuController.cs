@@ -28,20 +28,39 @@ namespace BlzSinhVien.Server.Controllers
                 return NotFound();
             return Ok(result);
         }
+        [HttpGet("Role/{MaRole}")]
+        public async Task<ActionResult<List<BLChucVu>>> GetCVMarole(string MaRole)
+        {
+            var result = await _service.GetMaRole(MaRole);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
+        }
         [HttpPost]
         public async Task<ActionResult<List<BLChucVu>>> CreateCV(BLChucVu chucvu)
         {
-            return Ok(await _service.CreateCV(chucvu));
+            var result = await _service.CreateCV(chucvu);
+            if(result == null)
+            {
+                return NotFound();
+            }
+            return Ok(result);
         }
         [HttpPut("{Id}")]
         public async Task<ActionResult<List<BLChucVu>>> UpdateCV(int Id, BLChucVu chucvu)
         {
-            return Ok(await _service.UpdateCV(Id, chucvu));
+            var result = await _service.UpdateCV(Id, chucvu);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
         }
         [HttpDelete("{Id}")]
         public async Task<ActionResult<List<BLChucVu>>> DeleteCV(int Id)
         {
-            return Ok(await _service.DeleteCV(Id));
+            var result = await _service.DeleteCV(Id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
         }
     }
 }

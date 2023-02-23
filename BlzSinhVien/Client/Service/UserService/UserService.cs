@@ -15,7 +15,9 @@ namespace BlzSinhVien.Client.Service.UserService
         }
 
         public List<BLUser> Listuser { get; set; } = new List<BLUser>();
-        public UserSession usersession { get; set; } = new UserSession();
+        public BLGiaoVien Giaovien { get; set; } = new BLGiaoVien();
+        public BLSinhVien SinhVien { get; set; } = new BLSinhVien();
+        public bool CheckUser { get; set; } = true;
 
         public async Task Delete(int Id)
         {
@@ -30,9 +32,9 @@ namespace BlzSinhVien.Client.Service.UserService
             }
         }
 
-        public async Task<BLUser> GetIdUser(int Id)
+        public async Task<BLUser?> GetIdUser(int Id)
         {
-            var result = await _http.GetFromJsonAsync<BLUser>($"api/User/{Id}");
+            var result = await _http.GetFromJsonAsync<BLUser>($"api/User/Users/{Id}");
             if (result != null)
                 return result;
             return null;
@@ -53,8 +55,6 @@ namespace BlzSinhVien.Client.Service.UserService
         {
             var result = await _http.PostAsJsonAsync($"api/User/Create", user);
         }
-
-
         public async Task<bool> UpdatePass(BLUserPasswordRequest userPass,UserSession usersession)
         {
             var result = await _http.PutAsJsonAsync("api/User/Update", userPass);
@@ -72,6 +72,24 @@ namespace BlzSinhVien.Client.Service.UserService
             }
             return true;
         }
-      
+
+        public async Task GetUserEmail(string email)
+        {
+            var result = await _http.GetFromJsonAsync<BLUser>($"api/User/{email}");
+            if(result != null && result.ChucVu!=null)
+            {
+                if(result.ChucVu.MaRole == "GiaoVien")
+                {
+                    CheckUser = true;
+                    Giaovien = result.GiaoVien;
+                }
+                else if (result.ChucVu.MaRole == "SinhVien")
+                {
+                    CheckUser = false;
+                    SinhVien = result.SinhVien;
+                }
+            }
+        }
+        
     }
 }

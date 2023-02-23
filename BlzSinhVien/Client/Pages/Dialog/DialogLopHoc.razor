@@ -1,4 +1,5 @@
 ﻿@inject ILopHocService LopHocService
+@inject INganhHocService NganhHocService
 @inject ISnackbar Snackbar
 @using MudBlazor.Services
 
@@ -22,11 +23,18 @@ else
                                   @bind-Value="lophoc.MaLopHoc" For="@(() => lophoc.MaLopHoc)"/>
                     <MudTextField Label="Tên Lớp Học" HelperText="Max. 8 characters"
                                   @bind-Value="lophoc.TenLopHoc" For="@(() => lophoc.TenLopHoc)"/>
+                    <MudSelect @bind-Value="_selectedDepartment" Label="Ngành học" OffsetY="true" AnchorOrigin="Origin.BottomCenter">
+
+                        @foreach (var department in listnganh){
+                              <MudSelectItem T=int? Value="@department.Id">@department.TenNganh</MudSelectItem>
+                        }
+                    </MudSelect>
                 </MudCardContent>
                 <MudCardActions>
                     <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
                     <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
                 </MudCardActions>
+                <MudText Color="Color.Error">@Messerror</MudText>
             </MudCard> 
         </MudItem>
     </MudPaper>
@@ -37,48 +45,74 @@ else
 
     [Parameter] public BLLopHoc lophoc { get; set; } = new BLLopHoc();
     [Parameter] public int Id { get; set; }
+    private List<BLNganhHoc> listnganh{ get; set; } = new List<BLNganhHoc>();
     void Cancel() => MudDialog.Cancel();
     public string action = string.Empty;
+    private string Messerror = string.Empty;
+    int? _selectedDepartment = 1;
     private async void OnValidSubmit(EditContext context)
     {
         if(Id == 0)
         {
+            if (_selectedDepartment.HasValue)
+            {
+                lophoc.NganhHocId = _selectedDepartment.Value ;
+            }
             await LopHocService.Create(lophoc);
-            StateHasChanged();
-            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
-            Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
-            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
-            Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(lophoc.Id));
+            if (LopHocService.CheckError == true)
+            {
+                Messerror = LopHocService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(lophoc.Id));
+            }
         }
         else
         {
+            if (_selectedDepartment.HasValue)
+            {
+                lophoc.NganhHocId = _selectedDepartment.Value ;
+            }
             await LopHocService.Update(lophoc);
-            StateHasChanged();
-            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
-            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
-            Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(lophoc.Id));
+            if (LopHocService.CheckError == true)
+            {
+                Messerror = LopHocService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(lophoc.Id));
+            }
         }
-
-
-    }
-    protected override async Task OnInitializedAsync()
-    {
-        action = Id == 0 ? "Create Lớp Học" : "Update Lớp Học";
     }
     protected override async Task OnParametersSetAsync()
     {
+        action = Id == 0 ? "Create Lớp Học" : "Update Lớp Học";
+        listnganh = NganhHocService.ListNganhHoc;
         if (Id == 0)
         {
             lophoc = new BLLopHoc();
         }
         else
         {
-            BLLopHoc checklophoc= await LopHocService.GetId((int)Id);
-            if(checklophoc!=null)
+            var result =await LopHocService.GetId((int)Id);
+            if(result != null)
             {
-                lophoc = checklophoc;
+                BLLopHoc checklophoc = result;
+                if(checklophoc!=null)
+                {
+                    lophoc = checklophoc;
+                    _selectedDepartment = checklophoc.NganhHocId;
+                }
             }
         }
     }

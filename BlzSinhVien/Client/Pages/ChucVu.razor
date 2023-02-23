@@ -20,8 +20,9 @@
     <Columns>
         <SelectColumn T="BLChucVu" />
         <Column T="BLChucVu" Field="Id" Title="STT" Filterable="false"/>
-        <Column T="BLChucVu" Field="RoleDesc" Title="Tên Chức Vụ"/>
-
+        <Column T="BLChucVu" Field="MaRole" Title="User"/>
+        <Column T="BLChucVu" Field="RoleDesc" Title="Quyền"/>
+        <Column T="BLChucVu" Field="TenChucVu" Title="Chức Vụ"/>
         <Column T="BLChucVu" CellClass="d-flex justify-end" Title="Action">
             <CellTemplate>
                 <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateChucVu(@context.Item.Id))" 
@@ -76,11 +77,14 @@
 
         if (x.RoleDesc.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-
+        if (x.MaRole.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (x.TenChucVu.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
         if (x.Id.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
 
-        if ($"{x.Id.ToString()} {x.RoleDesc} ".Contains(_searchString))
+        if ($"{x.Id.ToString()} {x.RoleDesc}{x.MaRole}{x.TenChucVu} ".Contains(_searchString))
             return true;
 
         return false;
@@ -116,7 +120,6 @@
 
         if (!result.Cancelled)
         {
-            await ChucVuService.GetChucVu();
             ListChuVu = ChucVuService.ChucVu;
             chucvu = new BLChucVu();
         }
@@ -129,7 +132,6 @@
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
-            await ChucVuService.GetChucVu();
             ListChuVu = ChucVuService.ChucVu;
          
         }

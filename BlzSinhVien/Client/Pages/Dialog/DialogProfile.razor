@@ -1,72 +1,183 @@
 ﻿@inject ISinhVienService SinhVienService
+@inject IGiaoVienService GiaoVienService
 @inject ISnackbar Snackbar
+@using BlzSinhVien.Client.Service.GiaoVienService
 @using MudBlazor.Services
 
+<div id="unique_id_scroll_section" class="ma-0" style="height:640px;overflow: auto;">
 <MudPaper Width="100%" Square="true" Class="mud-theme-primary">
-<h1 style="text-align:center">Cập nhật thông tin Sinh Viên</h1>
-<EditForm Model="@sinhvien" OnValidSubmit="OnValidSubmit">
-    <DataAnnotationsValidator/>
-    <MudPaper Width="100%">
-       <MudGrid>
-            <MudItem xs="12" sm="3">
-                    <MudImage Fluid="true" Src="./Anh/EPUlogo.png" Width="250" Height="270" Alt="Swedish Farm House" Elevation="25" Class="rounded-lg ma-4"/>
-            </MudItem>
-            <MudItem xs="12" sm="5">
-                   <MudTextField Label="Mã Sinh Viên" HelperText="Max. 8 characters" Disabled="true"
+<h1 style="text-align:center">@IsText</h1>
+    @if (IsCV == false) {
+        <EditForm Model="@sinhvien" OnValidSubmit="OnValidSubmit">
+            <DataAnnotationsValidator/>
+            <MudPaper Width="100%">
+                <MudGrid Class="grid-1">
+                    <MudItem xs="12" sm="3" Class="item-1">
+                        <MudImage Fluid="true" Src="./Anh/EPUlogo.png" Width="250" Height="270" Alt="Swedish Farm House" Elevation="25" Class="rounded-lg img-1"/>
+                    </MudItem>
+                    <MudItem xs="12" sm="5" Class="item-1">
+                        <MudTextField Label="Mã Sinh Viên" HelperText="Max. 8 characters" Disabled="true"
                                   @bind-Value="sinhvien.MaSinhVien" For="@(() => sinhvien.MaSinhVien)"/>
-                   <MudTextField Label="Tên Sinh Viên" HelperText="Max. 8 characters" Disabled="true"
-                                  @bind-Value="sinhvien.TenSinhVien" For="@(() => sinhvien.TenSinhVien)"/>
-                    <MudText style="padding:20px">Khoa : CNTT</MudText>
-                    <MudText style="padding:20px">Chuyên Ngành : CNPM</MudText>
-            </MudItem>
-            <MudItem xs="12" sm="4">
-                   <MudRadioGroup @bind-SelectedOption="@sinhvien.GioiTinh">
-                        <MudRadio Option="@("Nam")" Color="Color.Primary">Nam</MudRadio>
-                        <MudRadio Option="@("Nữ")" Color="Color.Secondary">Nữ</MudRadio>
-                    </MudRadioGroup>
+                          <MudTextField Label="FistName" HelperText="Max. 8 characters" 
+                                      @bind-Value="sinhvien.FistName" For="@(() => sinhvien.FistName)"/>
+                       <MudTextField Label="LastName" HelperText="Max. 8 characters"
+                                      @bind-Value="sinhvien.LastName" For="@(() => sinhvien.LastName)"/>
+                        <MudText>Khoa : CNTT</MudText>
+                        <MudText>Chuyên Ngành : CNPM</MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="4" Class="item-1">
+                        <MudRadioGroup @bind-SelectedOption="@sinhvien.GioiTinh">
+                            <MudRadio Option="@("Nam")" Color="Color.Primary">Nam</MudRadio>
+                            <MudRadio Option="@("Nữ")" Color="Color.Secondary">Nữ</MudRadio>
+                        </MudRadioGroup>
 
-                    <MudTextField Label="Dan Toc" HelperText="Max. 8 characters"
+                        <MudTextField Label="Dan Toc" HelperText="Max. 8 characters"
                                   @bind-Value="sinhvien.DanToc" For="@(() => sinhvien.DanToc)"/>
-                    <MudTextField Label="Dia Chi" HelperText="Max. 8 characters"
+                        <MudTextField Label="Dia Chi" HelperText="Max. 8 characters"
                                   @bind-Value="sinhvien.DiaChi" For="@(() => sinhvien.DiaChi)"/>
-                    <MudTextField Label="So dien thoai" HelperText="Max. 10 characters"
+                        <MudTextField Label="So dien thoai" HelperText="Max. 10 characters"
                                   @bind-Value="sinhvien.SoDienThoai" For="@(() => sinhvien.SoDienThoai)"/>
-            </MudItem>
-     
-            <MudItem xs="12" sm="3">
-                <MudText Typo="Typo.body2" Align="Align.Center">
-           
-                </MudText>
-            </MudItem>
-             <MudItem xs="12" sm="9">
-                <MudButton ButtonType="ButtonType.Submit"  Variant="Variant.Filled" Color="Color.Primary">Cập nhật thông tin</MudButton>
-                <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
-            </MudItem>
-        </MudGrid>
-    </MudPaper>
-</EditForm>
-</MudPaper>
-@code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+                        <MudSelect @bind-Value="sinhvien.LopHocId" Label="Ten Lop Hoc" OffsetY="true"  AnchorOrigin="Origin.BottomCenter">
 
-    [Parameter] public int Id { get; set; }
-    private BLSinhVien sinhvien { get; set; } = new BLSinhVien();
-    void Cancel() => MudDialog.Cancel();
-    private async void OnValidSubmit(EditContext context)
-    {
-         await SinhVienService.Update(sinhvien);
-         StateHasChanged();
-         Snackbar.Configuration.SnackbarVariant = Variant.Filled;
-         Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
-         Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
-         MudDialog.Close(DialogResult.Ok(sinhvien.Id));       
+                             @foreach (var item in listlop){
+                              <MudSelectItem T=int? Value="@item.Id">@item.TenLopHoc</MudSelectItem>
+                             }   
+                        </MudSelect>
+                    </MudItem>
+
+                    <MudItem xs="12" sm="3" Class="item-1">
+                        <MudText Typo="Typo.body2" Align="Align.Center">
+
+                        </MudText>
+                    </MudItem>
+                    <MudItem xs="12" sm="9" Class="item-1">
+                        <MudButton ButtonType="ButtonType.Submit"  Variant="Variant.Filled" Color="Color.Primary">Cập nhật thông tin</MudButton>
+                        <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                    </MudItem>
+                </MudGrid>
+            <MudScrollToTop TopOffset="500"
+                        OnScroll="OnScroll"
+                        Selector="#unique_id_scroll_section"
+                        VisibleCssClass="visible absolute"
+                        HiddenCssClass="invisible">
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Filled.ArrowUpward" Color="Color">Go to top</MudButton>
+           </MudScrollToTop>
+            </MudPaper>
+        </EditForm>
+        } else {
+   <EditForm Model="@giaovien" OnValidSubmit="OnValidSubmit">
+        <DataAnnotationsValidator/>
+        <MudPaper Width="100%">
+           <MudGrid Class="grid-1">
+                <MudItem xs="12" sm="6" Class="item-1">
+                        <MudImage Fluid="true" Src="./Anh/EPUlogo.png" Width="300" Height="310" Alt="Swedish Farm House" Elevation="25" Class="rounded-lg img-1"/>
+                </MudItem>
+                <MudItem xs="12" sm="3" Class="item-1">
+                       <MudTextField Label="Mã Giáo Viên" HelperText="Max. 8 characters" Disabled="true"
+                                      @bind-Value="giaovien.MaGiaoVien" For="@(() => giaovien.MaGiaoVien)"/>
+                       <MudTextField Label="FistName" HelperText="Max. 8 characters" Disabled="true"
+                                      @bind-Value="giaovien.FistName" For="@(() => giaovien.FistName)"/>
+                       <MudTextField Label="LastName" HelperText="Max. 8 characters" Disabled="true"
+                                      @bind-Value="giaovien.LastName" For="@(() => giaovien.LastName)"/>
+                        <MudText>Khoa : CNTT</MudText>
+                        <MudText>Chuyên Ngành : CNPM</MudText>
+                </MudItem>
+                <MudItem xs="12" sm="3" Class="item-1">
+                       <MudRadioGroup @bind-SelectedOption="@giaovien.GioiTinh">
+                            <MudRadio Option="@("Nam")" Color="Color.Primary" >Nam</MudRadio>
+                            <MudRadio Option="@("Nữ")" Color="Color.Secondary">Nữ</MudRadio>
+                        </MudRadioGroup>
+
+                        <MudTextField Label="Dan Toc" HelperText="Max. 8 characters"
+                                      @bind-Value="giaovien.DanToc" For="@(() => giaovien.DanToc)"/>
+                        <MudTextField Label="Dia Chi" HelperText="Max. 8 characters"
+                                      @bind-Value="giaovien.DiaChi" For="@(() => giaovien.DiaChi)"/>
+                        <MudTextField Label="So dien thoai" HelperText="Max. 10 characters"
+                                      @bind-Value="giaovien.SoDienThoai" For="@(() => giaovien.SoDienThoai)"/>
+                </MudItem>
+                
+                <MudItem xs="12" sm="3" Class="item-1">
+                    <MudText Typo="Typo.body2" Align="Align.Center">
+           
+                    </MudText>
+                </MudItem>
+                 <MudItem xs="12" sm="9" Class="item-1">
+                    <MudButton ButtonType="ButtonType.Submit"  Variant="Variant.Filled" Color="Color.Primary">Cập nhật thông tin</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+    </EditForm>
+} 
+     <MudScrollToTop TopOffset="500"
+                        OnScroll="OnScroll"
+                        Selector="#unique_id_scroll_section"
+                        VisibleCssClass="visible absolute"
+                        HiddenCssClass="invisible">
+            <MudButton Variant="Variant.Filled" StartIcon="@Icons.Filled.ArrowUpward" Color="Color">Go to top</MudButton>
+     </MudScrollToTop>
+</MudPaper>
+</div>
+@code {
+        [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+        [Parameter] public int Id { get; set; }
+        [Parameter] public bool IsCV { get; set; }
+        private BLGiaoVien giaovien { get; set; } = new BLGiaoVien();
+        private BLSinhVien sinhvien { get; set; } = new BLSinhVien();
+        void Cancel() => MudDialog.Cancel();
+        List<BLLopHoc> listlop = new List<BLLopHoc>();
+        private string IsText = string.Empty;
+        private async void OnValidSubmit(EditContext context)
+        {
+        if(IsCV == true){
+            await GiaoVienService.Update(giaovien);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(giaovien.Id));       
+        }
+        else
+        {
+            await SinhVienService.Update(sinhvien);
+            StateHasChanged();
+            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+            Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(sinhvien.Id));       
+        }
     }
-     protected override async Task OnParametersSetAsync()
+    protected override async Task OnParametersSetAsync()
     {
+        if(IsCV == true)
+        {
+            IsText = "Cập nhật Thông tin Giáo Viên ";
+            var checkgiaovien = await GiaoVienService.GetId((int)Id);
+            if(checkgiaovien!=null)
+            {
+                giaovien = checkgiaovien;
+            }
+        }
+        else
+        {
+            IsText = "Cập nhật Thông tin Sinh Viên ";
             BLSinhVien checksinhvien = await SinhVienService.GetId((int)Id);
             if(checksinhvien!=null)
             {
                 sinhvien = checksinhvien;
             }
+        }
+    }
+    Color Color = Color.Success;
+    private void OnScroll(ScrollEventArgs e)
+    {
+        Color = (e.FirstChildBoundingClientRect.Top*-1) switch
+        {
+            var x when x<  500 => Color.Primary,
+            var x when x < 1500 => Color.Secondary,
+            var x when x < 2500 => Color.Tertiary,
+            _=>Color.Error
+        };
     }
 }

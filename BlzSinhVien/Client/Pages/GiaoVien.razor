@@ -1,0 +1,151 @@
+﻿@page "/giaovien"
+@using BlzSinhVien.Client.Pages.Dialog
+@inject IGiaoVienService GiaoVienService
+@inject IKhoaHocService KhoaHocService
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin,User")]
+
+
+<MudButton OnClick="@((e) => CreateGiaoVien(user))" Variant="Variant.Filled" Color="Color.Primary">
+    Create Giáo Viên
+</MudButton>
+
+<MudDataGrid T="BLGiaoVien" Items="@ListGiaoVien" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
+    RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true" EditTrigger="DataGridEditTrigger.Manual" >
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Giáo Viên</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="BLGiaoVien" />
+        <Column T="BLGiaoVien" Field="Id" Title="STT" Filterable="false"/>
+        <Column T="BLGiaoVien" Field="MaGiaoVien" Title="Mã Giáo Viên"/>
+        <Column T="BLGiaoVien" Field="TenGiaoVien" Title="Tên Giáo Viên"/>
+        <Column T="BLGiaoVien" Field="NgaySinh" Title="Ngày Sinh"/>
+        <Column T="BLGiaoVien" Field="GioiTinh" Title="Giới Tính"/>
+        <Column T="BLGiaoVien" Field="DanToc" Title="Dân Tộc"/>
+        <Column T="BLGiaoVien" Field="DiaChi" Title="Địa Chỉ"/>
+        <Column T="BLGiaoVien" Field="SoDienThoai" Title="Số Điện Thoại"/>
+        <Column T="BLGiaoVien" Title="Tên Khoa">
+            <CellTemplate>
+                <MudText>@ListKhoa.Where(i=>i.Id == context.Item.KhoaId).Select(e=>e.TenKhoa).FirstOrDefault()</MudText>
+            </CellTemplate>
+        </Column>
+
+        <Column T="BLGiaoVien" CellClass="d-flex justify-end" Title="Action">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateGiaoVien(@context.Item.Id))" 
+                Color="Color.Primary" Variant="Variant.Filled"/> | 
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Delete" OnClick="@((e) => DeleteItem(context.Item.Id,Variant.Filled))" 
+                Color="Color.Error" Variant="Variant.Filled"/>
+            </CellTemplate>
+        </Column>
+    </Columns>
+    
+    <PagerContent>
+        <MudDataGridPager T="BLGiaoVien" />
+    </PagerContent>
+    
+</MudDataGrid>
+
+@code {
+    private List<BLGiaoVien> ListGiaoVien = new List<BLGiaoVien>();
+    private IList<BLKhoa> ListKhoa = new List<BLKhoa>();
+    private UserRegisterRequestGV user = new UserRegisterRequestGV();
+    private string _searchString = string.Empty;
+    private bool _sortNameByLength = true;
+    private List<string> _events = new();
+    private bool _readOnly = true;
+    protected override async Task OnInitializedAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+        var token = await customAuthStateProvider.GetToken();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            await GiaoVienService.GetGiaoVien();
+            await KhoaHocService.GetKhoa();
+            ListGiaoVien = GiaoVienService.GiaoVien;
+            ListKhoa = KhoaHocService.ListKhoa;
+            await base.OnInitializedAsync();    
+        }
+        else
+            navManager.NavigateTo("/");
+    }
+    #region
+    // custom sort by name length
+    private Func<BLGiaoVien, object> _sortBy => x =>
+    {
+        if (_sortNameByLength)
+            return x.TenGiaoVien.Length;
+        else
+            return x.TenGiaoVien;
+    };
+    // quick filter - filter gobally across multiple columns with the same input
+    private Func<BLGiaoVien, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.TenGiaoVien.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.MaGiaoVien.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (x.KhoaId.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if ($"{x.MaGiaoVien} {x.TenGiaoVien}{x.KhoaId.ToString()}  ".Contains(_searchString))
+            return true;
+
+        return false;
+    };
+
+
+    // events
+    void RowClicked(DataGridRowClickEventArgs<BLGiaoVien> args)
+    {
+        _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    void SelectedItemsChanged(HashSet<BLGiaoVien> items)
+    {
+        _events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+    }
+
+    #endregion
+
+    async Task DeleteItem(int id,Variant variant)
+    {
+        Snackbar.Add($"Đã xóa thành công ", Severity.Success);
+        await GiaoVienService.Delete(id);
+        ListGiaoVien = GiaoVienService.GiaoVien;
+
+    }
+    async Task CreateGiaoVien(UserRegisterRequestGV user)
+    {
+        var parameters = new DialogParameters { ["user"]=user};
+         DialogOptions maxWidth = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = DialogService.Show<DialogGiaoVien>("Create Giáo Viên", parameters,maxWidth);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            ListGiaoVien = GiaoVienService.GiaoVien;
+            user = new UserRegisterRequestGV();
+        }
+    }
+    async Task UpdateGiaoVien(int Id)
+    {
+        var parameters = new DialogParameters { ["Id"]=Id};
+        DialogOptions maxWidth = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = DialogService.Show<DialogGiaoVien>("Update Giáo Viên", parameters,maxWidth);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            ListGiaoVien = GiaoVienService.GiaoVien;
+        }
+    }
+}

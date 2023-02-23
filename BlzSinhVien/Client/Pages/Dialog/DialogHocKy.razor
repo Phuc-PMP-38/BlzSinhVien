@@ -1,0 +1,103 @@
+﻿@inject IHocKyService HocKyService
+@inject ISnackbar Snackbar
+@using MudBlazor.Services
+
+<MudPaper Width="100%" Square="true" Class="mud-theme-primary">
+@if(Id == 0)
+{
+    
+    <h1 style="text-align:center">Create Học Kỳ</h1>
+}
+else
+{
+    <h1 style="text-align:center">Update Học Kỳ</h1>
+}
+<EditForm Model="@hocky" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudPaper Width="100%">
+        <MudItem xs="20" sm="15">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Năm Bắt Đầu" 
+                                  @bind-Value="hocky.HocKyOn" For="@(() => hocky.HocKyOn)"/>
+                    <MudTextField Label="Năm Kết Thúc" 
+                                  @bind-Value="hocky.HocKyIn" For="@(() => hocky.HocKyIn)"/>
+                    <MudTextField Label="Phân Loại" 
+                                  @bind-Value="hocky.HocKyOut" For="@(() => hocky.HocKyOut)"/>
+                </MudCardContent>
+                <MudCardActions>    
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+                <MudText Color="Color.Error">@Messerror</MudText>
+            </MudCard> 
+        </MudItem>
+    </MudPaper>
+</EditForm>
+</MudPaper>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public BLHocKy hocky { get; set; } = new BLHocKy();
+    [Parameter] public int Id { get; set; }
+    void Cancel() => MudDialog.Cancel();
+    private string Messerror = string.Empty;
+    private string action = string.Empty;
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(Id == 0)
+        {
+            await HocKyService.Create(hocky);
+            if (HocKyService.CheckError == true)
+            {
+                Messerror = HocKyService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.MaxDisplayedSnackbars = 10;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+        else
+        {
+            await HocKyService.Update(hocky);
+            if(HocKyService.CheckError == true)
+            {
+                Messerror = HocKyService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            action = "Create Học Kỳ";
+            hocky = new BLHocKy();
+        }
+        else
+        {
+            action ="Update Học Kỳ";
+            var request =await HocKyService.GetId((int)Id);      
+            if(request != null)
+            {
+                BLHocKy checkhocky = request;
+                if(checkhocky!=null)
+                {
+                    hocky = checkhocky;
+                }
+            }
+        }
+    }
+}

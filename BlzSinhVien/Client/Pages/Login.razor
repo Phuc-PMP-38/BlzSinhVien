@@ -4,10 +4,8 @@
 @using System.Net
 @inject HttpClient httpClient
 @inject IJSRuntime js
+@inject BLUserSession userState
 <EditForm Model="use" OnValidSubmit="@ValidateUser">
-    <div>
-        <br /><br /><br /><br /><br />
-    </div>
     <div>
         <h3 style="font-weight:bold; color:purple">Quản lý Sinh Viên Điện lực </h3>
         <br/>
@@ -23,7 +21,7 @@
     <div class="col-12 row">
         <input type="password" class="form-control col-12" @bind-value="use.Password"  placeholder="password" name="password"/>
     </div>
-    <br />
+    <br />  
     <div class="col-12 row">
         <span class="col-12"></span>
         <input type="submit" class="form-control col-6 btn btn-primary" value="Login" />
@@ -38,18 +36,50 @@
     private string thongbao = "";
     private async Task ValidateUser()
     { 
-        var loginResponse = await httpClient.PostAsJsonAsync<BLUserLogin>("/api/User/Login", use);
-        if (loginResponse.IsSuccessStatusCode)
-        {
-            var userSession = await loginResponse.Content.ReadFromJsonAsync<UserSession>();
-            var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
-            await customAuthStateProvider.UpdateAuthenticationState(userSession);
-            navManager.NavigateTo("/index", true);
+        bool data = await CheckData(use);
+        if(data == true){
+            var loginResponse = await httpClient.PostAsJsonAsync<BLUserLogin>("/api/User/Login", use);
+            if (loginResponse.IsSuccessStatusCode)
+            {
+                var userSession = await loginResponse.Content.ReadFromJsonAsync<UserSession>();
+                if (userSession != null)
+                {
+                   userState.EmailAddress = userSession.UserName;
+                    userState.Role = userSession.Role;
+                    userState.Id = userSession.UserId;
+                    var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+                    await customAuthStateProvider.UpdateAuthenticationState(userSession);
+                    await js.InvokeVoidAsync("alert", $"Đăng nhập thành công {userState.EmailAddress}");
+                    navManager.NavigateTo("/index"); 
+                }
+            }
+            else 
+            {
+                await js.InvokeVoidAsync("alert", "Sai tài khoản hoặc mật khẩu");
+                return;
+            }
         }
-        else 
+    }
+    private async Task<bool> CheckData(BLUserLogin login)
+    {
+        if(login.EmailAddress== string.Empty &&login.Password == string.Empty)
         {
-            await js.InvokeVoidAsync("alert", "Invalid User Name or Password");
-            return;
+            await js.InvokeVoidAsync("alert", "Nhập tài khoản và mật khẩu ");
+            return false;
         }
+        else if (login.EmailAddress == string.Empty)
+        {
+            await js.InvokeVoidAsync("alert", "Kiểm tra lại tài khoản ");
+            return false;
+        }
+        else
+        {
+            if(login.Password == string.Empty)
+            {
+                await js.InvokeVoidAsync("alert", "Kiểm tra lại mật khẩu");
+                return false;
+            }
+        }
+        return true;
     }
 }

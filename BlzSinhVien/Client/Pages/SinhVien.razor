@@ -2,11 +2,13 @@
 @using BlzSinhVien.Client.Pages.Dialog
 @inject ISinhVienService SinhVienService
 @inject ILopHocService LopHocService
+@inject IHocKyService HocKyService
+@inject IGiaoVienService GiaoVienService
 @inject ISnackbar Snackbar
 @attribute [Authorize(Roles = "Admin,User")]
 
 
-<MudButton OnClick="@((e) => CreateSinhVien(sv))" Variant="Variant.Filled" Color="Color.Primary">
+<MudButton OnClick="@((e) => CreateSinhVien(user))" Variant="Variant.Filled" Color="Color.Primary">
     Create Sinh Vien
 </MudButton>
 
@@ -33,7 +35,16 @@
                 <MudText>@ListLopHoc.Where(i=>i.Id == context.Item.LopHocId).Select(e=>e.TenLopHoc).FirstOrDefault()</MudText>
             </CellTemplate>
         </Column>
-
+         <Column T="BLSinhVien" Title="Tên Giáo Viên">
+            <CellTemplate>
+                <MudText>@ListGiaoVien.Where(i=>i.Id == context.Item.GiaoViensId).Select(e=>e.TenGiaoVien).FirstOrDefault()</MudText>
+            </CellTemplate>
+        </Column>
+         <Column T="BLSinhVien" Title="Hoc Kỳ">
+            <CellTemplate>
+                <MudText>@ListHocKy.Where(i=>i.Id == context.Item.HocKyId).Select(e=>e.HocKy).FirstOrDefault()</MudText>
+            </CellTemplate>
+        </Column>
         <Column T="BLSinhVien" CellClass="d-flex justify-end" Title="Action">
             <CellTemplate>
                 <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateSinhVien(@context.Item.Id))" 
@@ -53,7 +64,10 @@
 @code {
     private List<BLSinhVien> ListSinhVien = new List<BLSinhVien>();
     private IList<BLLopHoc> ListLopHoc = new List<BLLopHoc>();
+    private IList<BLGiaoVien> ListGiaoVien = new List<BLGiaoVien>();
+    private IList<BLHocKy> ListHocKy = new List<BLHocKy>();
     private BLSinhVien sv = new BLSinhVien();
+    private UserRegisterRequest user = new UserRegisterRequest();
     private string _searchString = string.Empty;
     private bool _sortNameByLength = true;
     private List<string> _events = new();
@@ -67,8 +81,10 @@
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
             await SinhVienService.GetSinhVien();
             await SinhVienService.GetLopHoc();
+            await GiaoVienService.GetGiaoVien();
             ListLopHoc = SinhVienService.Lophoc;
             ListSinhVien = SinhVienService.SinhVien;
+            await base.OnInitializedAsync();    
         }
         else
             navManager.NavigateTo("/");
@@ -121,32 +137,29 @@
         ListSinhVien = SinhVienService.SinhVien;
 
     }
-    async Task CreateSinhVien(BLSinhVien sinhvien)
+    async Task CreateSinhVien(UserRegisterRequest user)
     {
-        var parameters = new DialogParameters { ["sinhvien"]=sinhvien};
-
-        var dialog = DialogService.Show<DialogCreateSinhVien>("Create SinhVien", parameters);
+        var parameters = new DialogParameters { ["user"]=user};
+         DialogOptions maxWidth = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = DialogService.Show<DialogCreateSinhVien>("Create SinhVien", parameters,maxWidth);
         var result = await dialog.Result;
 
         if (!result.Cancelled)
         {
-            await SinhVienService.GetSinhVien();
             ListSinhVien = SinhVienService.SinhVien;
-            sv = new BLSinhVien();
+            user = new UserRegisterRequest();
         }
     }
     async Task UpdateSinhVien(int Id)
     {
         var parameters = new DialogParameters { ["Id"]=Id};
-
-        var dialog = DialogService.Show<DialogCreateSinhVien>("Update SinhVien", parameters);
+        DialogOptions maxWidth = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = DialogService.Show<DialogCreateSinhVien>("Update SinhVien", parameters,maxWidth);
         var result = await dialog.Result;
         if (!result.Cancelled)
         {
-            await SinhVienService.GetSinhVien();
             ListSinhVien = SinhVienService.SinhVien;
-
         }
-        sv = new BLSinhVien();
+        user = new UserRegisterRequest();
     }
 }

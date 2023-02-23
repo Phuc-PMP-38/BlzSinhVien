@@ -10,6 +10,8 @@ namespace BlzSinhVien.Shared.Model
 {
     public class BLChucVu : BLBase
     {
+        public string MaRole { get; set; }
         public string RoleDesc { get; set; }
+        public string TenChucVu { get; set; }
     }
 }

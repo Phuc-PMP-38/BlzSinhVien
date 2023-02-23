@@ -1,0 +1,117 @@
+﻿@inject INganhHocService NganhHocService
+@inject IKhoaHocService KhoaHocService
+@inject ISnackbar Snackbar
+@using MudBlazor.Services
+
+<MudPaper Width="100%" Square="true" Class="mud-theme-primary">
+@if(Id == 0)
+{
+    
+    <h1 style="text-align:center">Create Ngành Học</h1>
+}
+else
+{
+    <h1 style="text-align:center">Update Ngành Học</h1>
+}
+<EditForm Model="@nganhhoc" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudPaper Width="100%">
+        <MudItem xs="20" sm="15">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Tên Ngành Học" HelperText="Max. 8 characters"
+                                  @bind-Value="nganhhoc.TenNganh" For="@(() => nganhhoc.TenNganh)"/>
+                    <MudSelect @bind-Value="_selectedDepartment" Label="Khoa" OffsetY="true" AnchorOrigin="Origin.BottomCenter">
+
+                        @foreach (var department in listkhoa){
+                              <MudSelectItem T=int? Value="@department.Id">@department.TenKhoa</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+                <MudText Color="Color.Error">@Messerror</MudText>
+            </MudCard> 
+        </MudItem>
+    </MudPaper>
+</EditForm>
+</MudPaper>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public BLNganhHoc nganhhoc { get; set; } = new BLNganhHoc{KhoaId=1};
+    [Parameter] public int Id { get; set; }
+    private List<BLKhoa> listkhoa{ get; set; } = new List<BLKhoa>();
+    void Cancel() => MudDialog.Cancel();
+    private string Messerror = string.Empty;
+    private string action = string.Empty;
+    int? _selectedDepartment = 1;
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(Id == 0)
+        {
+            if (_selectedDepartment.HasValue)
+            {
+                nganhhoc.KhoaId = _selectedDepartment.Value ;
+            }
+            await NganhHocService.Create(nganhhoc);
+            if (NganhHocService.CheckError == true)
+            {
+                Messerror = NganhHocService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.MaxDisplayedSnackbars = 10;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(nganhhoc.Id));
+            }
+        }
+        else
+        {
+            if (_selectedDepartment.HasValue)
+            {
+                nganhhoc.KhoaId = _selectedDepartment.Value ;
+            }
+            await NganhHocService.Update(nganhhoc);
+            if(NganhHocService.CheckError == true)
+            {
+                Messerror = NganhHocService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(nganhhoc.Id));
+            }
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        action = Id == 0 ? "Create Ngành Học" : "Update Ngành Học";
+        listkhoa = KhoaHocService.ListKhoa;
+        if (Id == 0)
+        {
+            nganhhoc = new BLNganhHoc();
+        }
+        else
+        {
+            var result = await NganhHocService.GetId((int)Id);
+            if(result != null)
+            {
+                BLNganhHoc checknganhhoc = result;
+                if(checknganhhoc!=null)
+                {
+                    nganhhoc = checknganhhoc;
+                    _selectedDepartment = checknganhhoc.KhoaId;
+                }
+            }
+        }
+    }
+}

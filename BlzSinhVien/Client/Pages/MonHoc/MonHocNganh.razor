@@ -1,0 +1,157 @@
+﻿@page "/monhocnganh"
+@inject IMonHocNganhService MonHocNganhService
+@inject IMonHocKhoaService MonHocKhoaService
+@inject INganhHocService NganhHocService
+@inject IMonHocService MonHocService
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin,User")]
+
+<MudButton OnClick="@((e) => CreateMonHocNganh(monhoc))" Variant="Variant.Filled" Color="Color.Primary">
+    Create Môn Học Ngành
+</MudButton>
+
+<MudDataGrid T="BLMonHocChuyenNganh" Items="@listmonhoc" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
+    RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true"  EditTrigger="DataGridEditTrigger.Manual" >
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Môn Học Chuyên Ngành</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="BLMonHocChuyenNganh" />
+        <Column T="BLMonHocChuyenNganh" Field="Id" Title="STT" Filterable="false"/>
+        <Column T="BLMonHocChuyenNganh" Title="Tên Ngành">
+            <CellTemplate>
+                <MudText>@ListNganhHoc.Where(i=>i.Id == context.Item.NganhHocId).Select(e=>e.TenNganh).FirstOrDefault()</MudText>
+            </CellTemplate>
+        </Column>
+         <Column T="BLMonHocChuyenNganh" Title="Tên Môn Học Khoa">
+            <CellTemplate>
+                <MudText>@ListMonHocKhoa.Where(i=>i.Id == context.Item.MonHocKhoaId).Select(e=>e.MonHoc.TenMonHoc).FirstOrDefault()</MudText>
+            </CellTemplate>
+        </Column>
+        <Column T="BLMonHocChuyenNganh"  Field="NamHoc" Title="Học Kỳ"/>
+        <Column T="BLMonHocChuyenNganh" CellClass="d-flex justify-end" Title="Action">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateMonHocNganh(@context.Item.Id))" 
+                Color="Color.Primary" Variant="Variant.Filled"/> | 
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Delete" OnClick="@((e) => DeleteItem(context.Item.Id,Variant.Filled))" 
+                Color="Color.Error" Variant="Variant.Filled"/>
+            </CellTemplate>
+        </Column>
+    </Columns>
+    
+    <PagerContent>
+        <MudDataGridPager T="BLMonHocChuyenNganh" />
+    </PagerContent>
+    
+</MudDataGrid>
+
+@code {
+    private List<BLMonHocChuyenNganh> listmonhoc = new List<BLMonHocChuyenNganh>();
+    private BLMonHocChuyenNganh monhoc = new BLMonHocChuyenNganh();
+    private string _searchString = string.Empty;
+    private bool _sortNameByLength = true;
+    private List<string> _events = new();
+    private bool _readOnly = true;
+    private List<BLMonHocKhoa> ListMonHocKhoa = new List<BLMonHocKhoa>();
+    private List<BLNganhHoc> ListNganhHoc = new List<BLNganhHoc>();
+    protected override async Task OnInitializedAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+        var token = await customAuthStateProvider.GetToken();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            if(  MonHocNganhService.MonHocNganh != null &&  MonHocNganhService.MonHocNganh?.Count()>0 && MonHocKhoaService.MonHocKhoa != null && MonHocKhoaService.MonHocKhoa?.Count()>0 
+            && NganhHocService.ListNganhHoc != null && NganhHocService.ListNganhHoc?.Count() > 0)
+            {
+                listmonhoc = MonHocNganhService.MonHocNganh;
+                ListMonHocKhoa = MonHocKhoaService.MonHocKhoa;
+                ListNganhHoc = NganhHocService.ListNganhHoc;
+            }
+            else
+            {
+                await MonHocNganhService.GetMonHocNganh();
+                listmonhoc = MonHocNganhService.MonHocNganh;
+                await MonHocKhoaService.GetMonHocKhoa();
+                ListMonHocKhoa = MonHocKhoaService.MonHocKhoa;
+                await NganhHocService.GetNganhHoc();
+                ListNganhHoc = NganhHocService.ListNganhHoc;
+                await MonHocService.GetMonHoc(); 
+            }
+        }
+        else
+            navManager.NavigateTo("/");
+    }
+    #region
+    // custom sort by name length
+    private Func<BLMonHocChuyenNganh, object> _sortBy => x =>
+    {
+        if (_sortNameByLength)
+            return x.MonHocKhoa.MonHoc.TenMonHoc.Length;
+        else
+            return x.MonHocKhoa.MonHoc.TenMonHoc;
+    };
+    // quick filter - filter gobally across multiple columns with the same input
+    private Func<BLMonHocChuyenNganh, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+        if (x.Id.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (x.NamHoc.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{x.Id.ToString()}{x.NamHoc.ToString()}".Contains(_searchString))
+            return true;
+
+        return false;
+    };
+
+
+    // events
+    void RowClicked(DataGridRowClickEventArgs<BLMonHocChuyenNganh> args)
+    {
+        _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    void SelectedItemsChanged(HashSet<BLMonHocChuyenNganh> items)
+    {
+        _events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+    }
+
+    #endregion
+
+    async Task DeleteItem(int id,Variant variant)
+    {
+        Snackbar.Add($"Đã xóa thành công ", Severity.Success);
+        await MonHocNganhService.Delete(id);
+        listmonhoc = MonHocNganhService.MonHocNganh;
+
+    }
+    async Task CreateMonHocNganh(BLMonHocChuyenNganh monhoc)
+    {
+        var parameters = new DialogParameters { ["monhoc"]=monhoc};
+
+        var dialog = DialogService.Show<DialogMonHocNganh>("Create Môn Học Ngành", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            listmonhoc = MonHocNganhService.MonHocNganh;
+            monhoc = new BLMonHocChuyenNganh();
+        }
+    }
+     async Task UpdateMonHocNganh(int Id)
+    {
+        var parameters = new DialogParameters { ["Id"]=Id};
+        var dialog = DialogService.Show<DialogMonHocNganh>("Update Môn Học Ngành", parameters);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            listmonhoc = MonHocNganhService.MonHocNganh;
+        }
+        monhoc = new BLMonHocChuyenNganh();
+    }
+}

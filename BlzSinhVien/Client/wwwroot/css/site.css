@@ -1,0 +1,7 @@
+﻿body {
+}
+@media (min-width: 480px) {
+    .d-flex .flex-row .gap-3 .rep-1 {
+        flex-direction: column !important;
+    }
+}

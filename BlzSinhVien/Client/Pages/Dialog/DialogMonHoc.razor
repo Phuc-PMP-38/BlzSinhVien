@@ -1,0 +1,106 @@
+﻿@inject IMonHocService MonHocService
+@inject ISnackbar Snackbar
+@using MudBlazor.Services
+
+<MudPaper Width="100%" Square="true" Class="mud-theme-primary">
+@if(Id == 0)
+{
+    
+    <h1 style="text-align:center">Create Môn Học</h1>
+}
+else
+{
+    <h1 style="text-align:center">Update Môn Học</h1>
+}
+<EditForm Model="@monhoc" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudPaper Width="100%">
+        <MudItem xs="20" sm="15">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Mã Môn Học" HelperText="Max. 8 characters"
+                                  @bind-Value="monhoc.MaMonHoc" For="@(() => monhoc.MaMonHoc)"/>
+                    <MudTextField Label="Tên Môn Học" HelperText="Max. 8 characters"
+                                  @bind-Value="monhoc.TenMonHoc" For="@(() => monhoc.TenMonHoc)"/>
+                    <MudTextField Label="Số Tín Chỉ" HelperText="Max. 8 characters"
+                                  @bind-Value="monhoc.SoTinChi" For="@(() => monhoc.SoTinChi)"/>
+                    <MudTextField Label="Số Tiết Lý Thuyết" HelperText="Max. 8 characters"
+                                  @bind-Value="monhoc.SoTietLyThuyet" For="@(() => monhoc.SoTietLyThuyet)"/>
+                    <MudTextField Label="Số Tiết Thực Hành" HelperText="Max. 8 characters"
+                                  @bind-Value="monhoc.SoTietThucHanh" For="@(() => monhoc.SoTietThucHanh)"/>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+                <MudText Color="Color.Error">@Messerror</MudText>
+            </MudCard> 
+        </MudItem>
+    </MudPaper>
+</EditForm>
+</MudPaper>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public BLMonHoc monhoc { get; set; } = new BLMonHoc();
+    [Parameter] public int Id { get; set; }
+    void Cancel() => MudDialog.Cancel();
+    public string action = string.Empty;
+    private string Messerror = string.Empty;
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(Id == 0)
+        {
+            await MonHocService.Create(monhoc);
+            if (MonHocService.CheckError == true)
+            {
+                Messerror = MonHocService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+        else
+        {
+            await MonHocService.Update(monhoc);
+            if (MonHocService.CheckError == true)
+            {
+                Messerror = MonHocService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(true));
+            }
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        action = Id == 0 ? "Create Môn Học" : "Update Môn Học";
+        if (Id == 0)
+        {
+            monhoc = new BLMonHoc();
+        }
+        else
+        {
+            var request = await MonHocService.GetId((int)Id);
+            if (request != null)
+            {
+                BLMonHoc checkmonhoc = request;
+                if(checkmonhoc!=null)
+                {
+                    monhoc = checkmonhoc;
+                }
+            }
+        }
+    }
+}

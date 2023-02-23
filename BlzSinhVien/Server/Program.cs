@@ -1,7 +1,16 @@
 using BlzSinhVien.Server.Authentication;
 using BlzSinhVien.Server.Data;
 using BlzSinhVien.Server.Service.ChucVuService;
+using BlzSinhVien.Server.Service.GiangDuongService;
+using BlzSinhVien.Server.Service.GiaoVienService;
+using BlzSinhVien.Server.Service.HocKyService;
+using BlzSinhVien.Server.Service.ImageService;
+using BlzSinhVien.Server.Service.KhoaService;
 using BlzSinhVien.Server.Service.LopHocService;
+using BlzSinhVien.Server.Service.MonHocChuyenNganhService;
+using BlzSinhVien.Server.Service.MonHocKhoaService;
+using BlzSinhVien.Server.Service.MonHocService;
+using BlzSinhVien.Server.Service.NganhHocService;
 using BlzSinhVien.Server.Service.SinhVienService;
 using BlzSinhVien.Server.Service.UserService;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -25,6 +34,15 @@ builder.Services.AddScoped<ISinhVienService, SinhVienService>();
 builder.Services.AddScoped<ILopHocService, LopHocService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IChucVuService, ChucVuService>();
+builder.Services.AddScoped<IGiaoVienService, GiaoVienService>();
+builder.Services.AddScoped<IMonHocService, MonHocService>();
+builder.Services.AddScoped<IMonHocKhoaService, MonHocKhoaService>();
+builder.Services.AddScoped<IMonHocChuyenNganhService, MonHocChuyenNganhService>();
+builder.Services.AddScoped<INganhHocService, NganhHocService>();
+builder.Services.AddScoped<IKhoaService, KhoaService>();
+builder.Services.AddScoped<IHocKyService, HocKyService>();
+builder.Services.AddScoped<IImageService, ImageService>();
+builder.Services.AddScoped<IGiangDuongService, GiangDuongService>();
 builder.Services.AddAuthentication(o =>
 {
     o.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

@@ -1,0 +1,144 @@
+﻿@page "/nganhhoc"
+@using BlzSinhVien.Client.Pages.Dialog
+@inject INganhHocService NganhHocService
+@inject IKhoaHocService KhoaHocService
+@inject ISnackbar Snackbar
+@attribute [Authorize(Roles = "Admin,User")]
+
+
+<MudButton OnClick="@((e) => CreateNganhHoc(nganhhoc))" Variant="Variant.Filled" Color="Color.Primary">
+    Create Ngành Học
+</MudButton>
+
+<MudDataGrid T="BLNganhHoc" Items="@ListNganhHoc" SortMode="SortMode.Multiple" QuickFilter="@_quickFilter"
+    RowClick="@RowClicked" SelectedItemsChanged="@SelectedItemsChanged" ReadOnly="@_readOnly"  Bordered="true" Dense="true"  EditTrigger="DataGridEditTrigger.Manual" >
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Ngành Học</MudText>
+        <MudSpacer />
+        <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+            AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <Columns>
+        <SelectColumn T="BLNganhHoc" />
+        <Column T="BLNganhHoc" Field="Id" Title="STT" Filterable="false"/>
+        <Column T="BLNganhHoc" Field="TenNganh" Title="Tên Ngành Học"/>
+        <Column T="BLNganhHoc" Title="Khoa">
+            <CellTemplate>
+                <MudText>@ListKhoa.Where(i=>i.Id == context.Item.KhoaId).Select(e=>e.TenKhoa).FirstOrDefault()</MudText>
+            </CellTemplate>
+        </Column>
+        <Column T="BLNganhHoc" CellClass="d-flex justify-end" Title="Action">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateNganhHoc(@context.Item.Id))" 
+                Color="Color.Primary" Variant="Variant.Filled"/> | 
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Delete" OnClick="@((e) => DeleteItem(context.Item.Id,Variant.Filled))" 
+                Color="Color.Error" Variant="Variant.Filled"/>
+            </CellTemplate>
+        </Column>
+    </Columns>
+    
+    <PagerContent>
+        <MudDataGridPager T="BLNganhHoc" />
+    </PagerContent>
+    
+</MudDataGrid>
+
+@code {
+    private List<BLNganhHoc> ListNganhHoc = new List<BLNganhHoc>();
+    private List<BLKhoa> ListKhoa = new List<BLKhoa>();
+    private BLNganhHoc nganhhoc = new BLNganhHoc();
+    private string _searchString = string.Empty;
+    private bool _sortNameByLength = true;
+    private List<string> _events = new();
+    private bool _readOnly = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authenticationStateProvider;
+        var token = await customAuthStateProvider.GetToken();
+        if (!string.IsNullOrWhiteSpace(token))
+        {
+            Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
+            await NganhHocService.GetNganhHoc();
+            ListNganhHoc = NganhHocService.ListNganhHoc;
+            await KhoaHocService.GetKhoa();
+            ListKhoa = KhoaHocService.ListKhoa;
+        }
+        else
+            navManager.NavigateTo("/");
+    }
+    #region
+    // custom sort by name length
+    private Func<BLNganhHoc, object> _sortBy => x =>
+    {
+        if (_sortNameByLength)
+            return x.TenNganh.Length;
+        else
+            return x.TenNganh;
+    };
+    // quick filter - filter gobally across multiple columns with the same input
+    private Func<BLNganhHoc, bool> _quickFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        if (x.TenNganh.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if (x.Id.ToString().Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+            return true;
+
+        if ($"{x.Id.ToString()} {x.TenNganh} ".Contains(_searchString))
+            return true;
+
+        return false;
+    };
+
+
+    // events
+    void RowClicked(DataGridRowClickEventArgs<BLNganhHoc> args)
+    {
+        _events.Insert(0, $"Event = RowClick, Index = {args.RowIndex}, Data = {System.Text.Json.JsonSerializer.Serialize(args.Item)}");
+    }
+
+    void SelectedItemsChanged(HashSet<BLNganhHoc> items)
+    {
+        _events.Insert(0, $"Event = SelectedItemsChanged, Data = {System.Text.Json.JsonSerializer.Serialize(items)}");
+    }
+
+    #endregion
+
+    async Task DeleteItem(int id,Variant variant)
+    {
+        Snackbar.Add($"Đã xóa thành công ", Severity.Success);
+        await NganhHocService.Delete(id);
+        ListNganhHoc = NganhHocService.ListNganhHoc;
+
+    }
+    async Task CreateNganhHoc(BLNganhHoc nganhhoc)
+    {
+        var parameters = new DialogParameters { ["nganhhoc"]=nganhhoc};
+
+        var dialog = DialogService.Show<DialogNganhHoc>("Create NganhHoc", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Cancelled)
+        {
+            ListNganhHoc = NganhHocService.ListNganhHoc;
+            nganhhoc = new BLNganhHoc();
+        }
+    }
+     async Task UpdateNganhHoc(int Id)
+    {
+        var parameters = new DialogParameters { ["Id"]=Id};
+
+        var dialog = DialogService.Show<DialogNganhHoc>("Update Ngành Học", parameters);
+        var result = await dialog.Result;
+        if (!result.Cancelled)
+        {
+            ListNganhHoc = NganhHocService.ListNganhHoc;
+         
+        }
+        nganhhoc = new BLNganhHoc();
+    }
+}

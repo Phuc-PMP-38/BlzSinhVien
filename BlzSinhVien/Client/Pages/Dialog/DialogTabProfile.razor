@@ -3,36 +3,71 @@
 @using BlzSinhVien.Client.Extensions
 @using BlzSinhVien.Client.Pages.Dialog
 @inject ISinhVienService SinhVienService
+@inject IGiaoVienService GiaoVienService
+@inject IUserService UserService
 @inject ISnackbar Snackbar
 @inject ISessionStorageService sessionStorage
+
+    
 <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
     <MudTabPanel Text="Thông tin ">
+@if(UserService.CheckUser == false)
+{
         <MudGrid>
-    <MudItem xs="12" sm="3">
-            <MudImage Fluid="true" Src="./Anh/EPUlogo.png" Width="250" Height="270" Alt="Swedish Farm House" Elevation="25" Class="rounded-lg ma-4"/>
-    </MudItem>
-    <MudItem xs="12" sm="5">
-           <MudText style="padding:20px">Mã Sinh Viên : @sv.MaSinhVien</MudText>
-           <MudText style="padding:20px">Họ và tên : @sv.TenSinhVien</MudText>
-           <MudText style="padding:20px">Khoa : CNTT</MudText>
-           <MudText style="padding:20px">Chuyên Ngành : CNPM</MudText>
-    </MudItem>
-    <MudItem xs="12" sm="4">
-           <MudText style="padding:20px">Ngày Sinh :  @sv.NgaySinh</MudText>
-           <MudText style="padding:20px">Giới Tính : @sv.GioiTinh</MudText>
-           <MudText style="padding:20px">Số Điện Thoại : @sv.SoDienThoai</MudText>
-           <MudText style="padding:20px">Dân Tộc : @sv.DanToc</MudText>
-    </MudItem>
+            <MudItem xs="12" sm="5">
+                    <MudImage Fluid="true" Src="./Anh/EPUlogo.png" Width="250" Height="270" Alt="Swedish Farm House" Elevation="25" Class="rounded-lg img-size"/>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                   <MudText style="padding:20px">Mã Sinh Viên : @sv.MaSinhVien</MudText>
+                   <MudText style="padding:20px">Họ và tên : @sv.TenSinhVien</MudText>
+                   <MudText style="padding:20px">Khoa : CNTT</MudText>
+                   <MudText style="padding:20px">Chuyên Ngành : CNPM</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                   <MudText style="padding:20px">Ngày Sinh :  @sv.NgaySinh</MudText>
+                   <MudText style="padding:20px">Giới Tính : @sv.GioiTinh</MudText>
+                   <MudText style="padding:20px">Số Điện Thoại : @sv.SoDienThoai</MudText>
+                   <MudText style="padding:20px">Dân Tộc : @sv.DanToc</MudText>
+            </MudItem>
      
-    <MudItem xs="12" sm="3">
-        <MudText Typo="Typo.body2" Align="Align.Center">
+            <MudItem xs="12" sm="5">
+                <MudText Typo="Typo.body2" Align="Align.Center">
            
-        </MudText>
-    </MudItem>
-     <MudItem xs="12" sm="9">
-        <MudButton OnClick="@((e) => UpdateSinhVien(sv.Id))" Variant="Variant.Filled" Color="Color.Primary">Cập nhật thông tin</MudButton>
-    </MudItem>
-</MudGrid>
+                </MudText>
+            </MudItem>
+             <MudItem xs="12" sm="7">
+                <MudButton OnClick="@((e) => UpdateUser(sv.Id))" Variant="Variant.Filled" Color="Color.Primary">Cập nhật thông tin</MudButton>
+            </MudItem>
+        </MudGrid>
+}else{
+    <MudGrid>
+            <MudItem xs="12" sm="3">
+                    <MudImage Fluid="true" Src="./Anh/EPUlogo.png" Width="250" Height="270" Alt="Swedish Farm House" Elevation="25" Class="rounded-lg img-size"/>
+            </MudItem>
+            <MudItem xs="12" sm="5">
+                   <MudText style="padding:3px">Mã Giáo Viên : @giaovien.MaGiaoVien</MudText>
+                   <MudText style="padding:3px">Họ và tên : @giaovien.TenGiaoVien</MudText>
+                   <MudText style="padding:3px">Khoa : CNTT</MudText>
+                   <MudText style="padding:3px">Chuyên Ngành : CNPM</MudText>
+            </MudItem>
+            <MudItem xs="12" sm="4">
+                   <MudText style="padding:3px">Ngày Sinh :  @giaovien.NgaySinh</MudText>
+                   <MudText style="padding:3px">Giới Tính : @giaovien.GioiTinh</MudText>
+                   <MudText style="padding:3px">Số Điện Thoại : @giaovien.SoDienThoai</MudText>
+                   <MudText style="padding:3px">Dân Tộc : @giaovien.DanToc</MudText>
+                   <MudText style="padding:3px">Địa Chỉ : @giaovien.DiaChi</MudText>
+            </MudItem>
+     
+            <MudItem xs="12" sm="3">
+                <MudText Typo="Typo.body2" Align="Align.Center">
+           
+                </MudText>
+            </MudItem>
+             <MudItem xs="12" sm="9">
+                <MudButton OnClick="@((e) => UpdateUser(giaovien.Id))" Variant="Variant.Filled" Color="Color.Primary">Cập nhật thông tin</MudButton>
+            </MudItem>
+        </MudGrid>
+}
     </MudTabPanel>
     <MudTabPanel Text="Tab Two">
         <MudText>Content Two</MudText>
@@ -44,26 +79,49 @@
         <MudText>Content Disabled</MudText>
     </MudTabPanel>
 </MudTabs>
+
+
 @code{
+    private BLGiaoVien giaovien = new BLGiaoVien();
     private BLSinhVien sv =new BLSinhVien();
     private UserSession usersession = new UserSession();
     protected override async Task OnInitializedAsync(){
-        usersession =await sessionStorage.ReadEncryptedItemAsync<UserSession>("UserSession");
-        if (usersession != null)
-        {
-            sv = await SinhVienService.GetEmailSinhVien(usersession.UserName);
+        var session = await sessionStorage.ReadEncryptedItemAsync<UserSession>("UserSession");
+        if(session !=null){
+            usersession = session;
+            if (usersession != null && usersession.Token !=null)
+            {
+                await UserService.GetUserEmail(usersession.UserName);
+                if(UserService.CheckUser == true)
+                {
+                    giaovien = UserService.Giaovien;
+                }
+                else if(UserService.CheckUser == false)
+                {
+                    sv = UserService.SinhVien;
+                }
+                     
+            }
         }
     }
-    async Task UpdateSinhVien(int Id)
+    async Task UpdateUser(int Id)
     {
-        DialogOptions maxWidth = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
-        var parameters = new DialogParameters { ["Id"]=Id};
+        DialogOptions maxWidth = new DialogOptions() { MaxWidth = MaxWidth.Large, FullWidth = true };
+        var parameters = new DialogParameters { ["Id"]=Id,["IsCV"] = UserService.CheckUser};
         var dialog = DialogService.Show<DialogProfile>("Cập nhật thông tin ", parameters,maxWidth);
         var result = await dialog.Result;
 
         if (!result.Cancelled)
         {
-            sv = await SinhVienService.GetEmailSinhVien(usersession.UserName);
+            await UserService.GetUserEmail(usersession.UserName);
+             if(UserService.CheckUser == true)
+             {
+                 giaovien = UserService.Giaovien;
+             }
+             else if(UserService.CheckUser == false)
+             {
+                 sv = UserService.SinhVien;
+             }
         }
     }
 }

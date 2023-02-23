@@ -34,9 +34,12 @@ namespace BlzSinhVien.Client.Service.SinhVienService
             }
         }
 
-        public async Task Create(BLSinhVien sinhvien)
+        public async Task Create(UserRegisterRequest sinhvien)
         {
-            var result = await _http.PostAsJsonAsync("api/SinhVien", sinhvien);
+            var result = await _http.PostAsJsonAsync("api/User/CreateSV", sinhvien);
+            var request = await result.Content.ReadFromJsonAsync<List<BLSinhVien>>();
+            if (request != null)
+                SinhVien = request;
         }
 
         public async Task<BLSinhVien> GetId(int id)
@@ -51,6 +54,9 @@ namespace BlzSinhVien.Client.Service.SinhVienService
         public async Task Update(BLSinhVien sinhvien)
         {
             var result = await _http.PutAsJsonAsync($"api/SinhVien/{sinhvien.Id}",sinhvien);
+            var request = await result.Content.ReadFromJsonAsync<List<BLSinhVien>>();
+            if (request != null)
+                SinhVien = request;
         }
         public async Task Delete(int id)
         {
@@ -59,19 +65,5 @@ namespace BlzSinhVien.Client.Service.SinhVienService
             if (conresult != null) 
                 SinhVien = conresult;
         }
-        public async Task<BLSinhVien> GetEmailSinhVien(string email)
-        {
-            var result = await _http.GetFromJsonAsync<List<BLUser>>("api/User");
-            if (result != null)
-            {
-                var UserSV = result.FirstOrDefault(e => e.EmailAddress == email);
-                if (UserSV != null)
-                {
-                    return UserSV.SinhVien;
-                }
-            }
-            return null;
-        }
-
     }
 }

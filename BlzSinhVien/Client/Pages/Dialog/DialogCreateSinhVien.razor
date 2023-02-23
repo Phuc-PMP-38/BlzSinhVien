@@ -1,28 +1,96 @@
 ﻿@inject ISinhVienService SinhVienService
+@inject IChucVuService ChucVuService
+@inject IGiaoVienService GiaoVienService 
+@inject IUserService UserService 
 @inject ISnackbar Snackbar
 @using MudBlazor.Services
-
+<div id="unique_id_scroll_section" class="ma-0 dia-3" style="height:auto;overflow: auto;">
 <MudPaper Width="100%" Square="true" Class="mud-theme-primary">
 @if(Id == 0)
 {
     
     <h1 style="text-align:center">Create Sinh Viên</h1>
+    <EditForm Model="@user" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudStack id="rep-2"  Class="rep-1" Row="true">
+    <MudPaper Class="pa-3" width="100%">
+            <MudItem xs="20" sm="15">
+                <MudCard>
+                    <MudCardContent>
+                         <MudTextField Label="Email" HelperText="Max. 8 characters"
+                                      @bind-Value="user.EmailAddress" For="@(() => user.EmailAddress)"/>
+                        @if(Id==0){
+                        <MudTextField Label="PassWord" HelperText="Max. 8 characters"
+                                      @bind-Value="user.Password" For="@(() => user.Password)" InputType="InputType.Password"/>
+                        <MudTextField Label="ConfirmPassword" HelperText="Max. 8 characters"
+                                      @bind-Value="user.ConfirmPassword" For="@(() => user.ConfirmPassword)" InputType="InputType.Password"/>
+                        }
+                        <MudSelect @bind-Value="_selectedDepartment" Label="Select Department" OffsetY="true">
+                            @foreach (var department in listchucvu){
+                                  <MudSelectItem T=int? Value="@department.Id">@department.RoleDesc</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudCardContent>
+                    <MudText Color="Color.Error">@messerror</MudText>
+                </MudCard> 
+            </MudItem>
+        </MudPaper>
+    <MudPaper Class="pa-3" Width="100%">
+                    <MudTextField Label="Mã Sinh Viên" HelperText="Max. 11 characters" MaxLength="11"
+                                  @bind-Value="user.SinhVien.MaSinhVien" For="@(() => user.SinhVien.MaSinhVien)"/>
+                    <MudTextField Label="FistName" HelperText="Max. 8 characters"
+                                  @bind-Value="user.SinhVien.FistName" For="@(() => user.SinhVien.FistName)"/>
+                    <MudTextField Label="LastName" HelperText="Max. 8 characters"
+                                  @bind-Value="user.SinhVien.LastName" For="@(() => user.SinhVien.LastName)"/>
+                    <MudDatePicker Label="Ngày Sinh" @bind-Date="@user.SinhVien.NgaySinh" DateFormat="dd/MM/yyyy" />
+                    <MudText Style="font:inherit">Giới Tính</MudText>
+                    <MudRadioGroup @bind-SelectedOption="@user.SinhVien.GioiTinh">
+                        <MudRadio Option="@("Nam")" Color="Color.Primary">Nam</MudRadio>
+                        <MudRadio Option="@("Nữ")" Color="Color.Secondary">Nữ</MudRadio>
+                    </MudRadioGroup>
+
+                    <MudTextField Label="Dan Toc" HelperText="Max. 8 characters"
+                                  @bind-Value="user.SinhVien.DanToc" For="@(() => user.SinhVien.DanToc)"/>
+                    <MudTextField Label="Dia Chi" HelperText="Max. 8 characters"
+                                  @bind-Value="user.SinhVien.DiaChi" For="@(() => user.SinhVien.DiaChi)"/>
+                    <MudTextField   Label="So dien thoai" HelperText="Max. 10 characters" MaxLength="10"
+                                  @bind-Value="user.SinhVien.SoDienThoai" For="@(() => user.SinhVien.SoDienThoai)"/>
+                    <MudSelect @bind-Value="_selectedDepartmentGV" Label="Giáo Viên" OffsetY="true"  AnchorOrigin="Origin.BottomCenter">
+                    @foreach (var item in listgiaovien){    
+                          <MudSelectItem T=int? Value="@item.Id">@item.TenGiaoVien</MudSelectItem>
+                    }   
+                    </MudSelect>
+                    <MudSelect @bind-Value="user.SinhVien.LopHocId" Label="Ten Lop Hoc" OffsetY="true"  AnchorOrigin="Origin.BottomCenter">
+
+                    @foreach (var item in listlop){
+                          <MudSelectItem T=int? Value="@item.Id">@item.TenLopHoc</MudSelectItem>
+                    }   
+                    </MudSelect>
+    </MudPaper>
+        </MudStack>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+            
+</EditForm>
+
 }
 else
 {
     <h1 style="text-align:center">Update Sinh Viên</h1>
-}
-<EditForm Model="@sinhvien" OnValidSubmit="OnValidSubmit">
+    <EditForm Model="@sinhvien" OnValidSubmit="OnValidSubmit">
     <DataAnnotationsValidator/>
     <MudPaper Width="100%">
         <MudItem xs="20" sm="15">
             <MudCard>
                 <MudCardContent>
-                    <MudTextField Label="Mã Sinh Viên" HelperText="Max. 8 characters"
-                                  @bind-Value="sinhvien.MaSinhVien" For="@(() => sinhvien.MaSinhVien)"/>
-                    <MudTextField Label="Tên Sinh Viên" HelperText="Max. 8 characters"
-                                  @bind-Value="sinhvien.TenSinhVien" For="@(() => sinhvien.TenSinhVien)"/>
-                    
+                    <MudTextField Label="Mã Sinh Viên" HelperText="Max. 11 characters" MaxLength="11"
+                                  @bind-Value="sinhvien.MaSinhVien" For="@(() =>sinhvien.MaSinhVien)" Disabled=true/>
+                    <MudTextField Label="FistName" HelperText="Max. 8 characters"
+                                  @bind-Value="sinhvien.FistName" For="@(() => sinhvien.FistName)"/>
+                    <MudTextField Label="LastName" HelperText="Max. 8 characters"
+                                  @bind-Value="sinhvien.LastName" For="@(() => sinhvien.LastName)"/>
                     <MudDatePicker Label="Ngày Sinh" @bind-Date="@sinhvien.NgaySinh" DateFormat="dd/MM/yyyy" />
                     <MudText Style="font:inherit">Giới Tính</MudText>
                     <MudRadioGroup @bind-SelectedOption="@sinhvien.GioiTinh">
@@ -34,71 +102,113 @@ else
                                   @bind-Value="sinhvien.DanToc" For="@(() => sinhvien.DanToc)"/>
                     <MudTextField Label="Dia Chi" HelperText="Max. 8 characters"
                                   @bind-Value="sinhvien.DiaChi" For="@(() => sinhvien.DiaChi)"/>
-                    <MudTextField Label="So dien thoai" HelperText="Max. 10 characters"
-                                  @bind-Value="sinhvien.SoDienThoai" For="@(() => sinhvien.SoDienThoai)"/>
+                    <MudTextField   Label="So dien thoai" HelperText="Max. 10 characters" MaxLength="10"
+                                  @bind-Value="sinhvien.SoDienThoai" For="@(() =>sinhvien.SoDienThoai)"/>
+                    <MudSelect @bind-Value="sinhvien.GiaoViensId" Label="Giáo Viên" OffsetY="true"  AnchorOrigin="Origin.BottomCenter">
 
+                    @foreach (var item in listgiaovien){
+                          <MudSelectItem T=int? Value="@item.Id">@item.TenGiaoVien</MudSelectItem>
+                    }   
+                    </MudSelect>
                     <MudSelect @bind-Value="sinhvien.LopHocId" Label="Ten Lop Hoc" OffsetY="true"  AnchorOrigin="Origin.BottomCenter">
 
                     @foreach (var item in listlop){
                           <MudSelectItem T=int? Value="@item.Id">@item.TenLopHoc</MudSelectItem>
                     }   
                     </MudSelect>
+                     <MudSelect @bind-Value="sinhvien.HocKyId" Label="Học Kỳ" OffsetY="true"  AnchorOrigin="Origin.BottomCenter">
 
+                    @foreach (var item in listhocky){
+                          <MudSelectItem T=int? Value="@item.Id">@item.HocKy</MudSelectItem>
+                    }   
+                    </MudSelect>
                 </MudCardContent>
-                <MudCardActions>
-                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
-                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
-                </MudCardActions>
-            </MudCard> 
+                </MudCard> 
         </MudItem>
     </MudPaper>
+    <MudCardActions>
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+            <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+    </MudCardActions>  
 </EditForm>
-
+}
 </MudPaper>
+</div>
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
 
-    [Parameter] public BLSinhVien sinhvien { get; set; } = new BLSinhVien();
+    [Parameter] public UserRegisterRequest user { get; set; } = new UserRegisterRequest();
     [Parameter] public int Id { get; set; }
-    BLLopHoc lophoc = new BLLopHoc();
-    List<BLLopHoc> listlop = new List<BLLopHoc>();
+    private List<BLChucVu> listchucvu = new List<BLChucVu>();
+    private BLSinhVien sinhvien = new BLSinhVien();
+    private List<BLGiaoVien> listgiaovien = new List<BLGiaoVien>();
+    private  BLLopHoc lophoc = new BLLopHoc();
+    private List<BLLopHoc> listlop = new List<BLLopHoc>();
+    private List<BLHocKy> listhocky = new List<BLHocKy>();
     void Cancel() => MudDialog.Cancel();
     public string action = string.Empty;
+    int? _selectedDepartment = 1;
+    int? _selectedDepartmentGV = 1;
+    private string messerror = string.Empty;
     private async void OnValidSubmit(EditContext context)
     {
         if(Id == 0)
         {
-            await SinhVienService.Create(sinhvien);
-            StateHasChanged();
-            Snackbar.Configuration.SnackbarVariant = Variant.Filled;
-            Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
-            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
-            Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(sinhvien.Id));
+            await UserService.GetUserEmail(user.EmailAddress);
+            if(UserService.CheckUser== false)
+            {
+                if(SinhVienService.SinhVien.Any(e=>e.MaSinhVien == user.SinhVien.MaSinhVien))
+                if (_selectedDepartment.HasValue && _selectedDepartmentGV.HasValue)
+                {
+                    user.ChucVuId = _selectedDepartment.Value;
+                    user.SinhVien.GiaoViensId = _selectedDepartmentGV.Value;
+                }
+                var userStr = user.SinhVien.ToString();
+                if (string.IsNullOrEmpty(userStr))  {
+                    listchucvu.ForEach(e => { if (e.Id == user.ChucVuId ) { user.Role = e.RoleDesc; user.MaRole = e.MaRole; } });
+                    await SinhVienService.Create(user);
+                    StateHasChanged();
+                    Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                    Snackbar.Configuration.MaxDisplayedSnackbars = 10; 
+                    Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                    Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+                    MudDialog.Close(DialogResult.Ok(true));
+                }else{
+                    messerror = "Mời nhập dữ liệu sinh viên ";
+                }
+            }else{
+                    messerror = "User đã tồn tại";
+            }
         }
         else
         {
+            if (_selectedDepartmentGV.HasValue)
+            {
+                sinhvien.GiaoViensId = _selectedDepartmentGV.Value;
+            }
             await SinhVienService.Update(sinhvien);
             StateHasChanged();
             Snackbar.Configuration.SnackbarVariant = Variant.Filled;
             Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
             Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(sinhvien.Id));
+            MudDialog.Close(DialogResult.Ok(true));
         }
-
-
     }
     protected override async Task OnInitializedAsync()
     {
         action = Id == 0 ? "Create Sinh Vien" : "Update Sinh Vien";
         await SinhVienService.GetLopHoc();
         listlop = SinhVienService.Lophoc;
+        await ChucVuService.GetMaRole("SinhVien");
+        listchucvu = ChucVuService.ChucVu;
+         await GiaoVienService.GetGiaoVien();
+        listgiaovien = GiaoVienService.GiaoVien;
     }
     protected override async Task OnParametersSetAsync()
     {
         if (Id == 0)
         {
-            sinhvien = new BLSinhVien();
+            user = new UserRegisterRequest();
         }
         else
         {

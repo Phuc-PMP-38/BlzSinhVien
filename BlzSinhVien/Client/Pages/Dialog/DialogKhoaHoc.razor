@@ -1,0 +1,98 @@
+﻿@inject IKhoaHocService KhoaHocService
+@inject ISnackbar Snackbar
+@using MudBlazor.Services
+@inject IJSRuntime js
+<MudPaper Width="100%" Square="true" Class="mud-theme-primary">
+@if(Id == 0)
+{
+    
+    <h1 style="text-align:center">Create Khoa </h1>
+}
+else
+{
+    <h1 style="text-align:center">Update Khoa </h1>
+}
+<EditForm Model="@khoahoc" OnValidSubmit="OnValidSubmit">
+    <DataAnnotationsValidator/>
+    <MudPaper Width="100%">
+        <MudItem xs="20" sm="15">
+            <MudCard>
+                <MudCardContent>
+                    <MudTextField Label="Tên Ngành Học" HelperText="Max. 8 characters"
+                                  @bind-Value="khoahoc.TenKhoa" For="@(() => khoahoc.TenKhoa)"/>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@action</MudButton>
+                    <MudButton OnClick="Cancel" Variant="Variant.Filled" Color="Color.Primary" Class="ml-auto">Cancel</MudButton>
+                </MudCardActions>
+                <MudText Color="Color.Error">@Messerror</MudText>
+            </MudCard> 
+        </MudItem>
+    </MudPaper>
+</EditForm>
+</MudPaper>
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public BLKhoa khoahoc { get; set; } = new BLKhoa{};
+    [Parameter] public int Id { get; set; }
+    void Cancel() => MudDialog.Cancel();
+    private string Messerror = string.Empty;
+    private string action = string.Empty;
+    private async void OnValidSubmit(EditContext context)
+    {
+        if(Id == 0)
+        {
+            await KhoaHocService.Create(khoahoc);
+            if (KhoaHocService.CheckError == true)
+            {
+                Messerror = KhoaHocService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.MaxDisplayedSnackbars = 10;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Thêm thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(khoahoc.Id));
+            }
+        }
+        else
+        {
+            await KhoaHocService.Update(khoahoc);
+            if(KhoaHocService.CheckError == true)
+            {
+                Messerror = KhoaHocService.Messerror;
+            }
+            else
+            {
+                StateHasChanged();
+                Snackbar.Configuration.SnackbarVariant = Variant.Filled;
+                Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopEnd;
+                Snackbar.Add($"Đã Sửa thành công ", Severity.Success);
+                MudDialog.Close(DialogResult.Ok(khoahoc.Id));
+            }
+        }
+    }
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Id == 0)
+        {
+            action = "Create Khoa Học";
+            khoahoc = new BLKhoa();
+        }
+        else
+        {
+            action = "Update Khoa Học";
+            var result =  await KhoaHocService.GetId((int)Id);
+            if(result !=null){
+                BLKhoa checkkhoa = result;
+                if(checkkhoa!=null)
+                {
+                    khoahoc = checkkhoa;
+                }
+            }
+        }
+    }
+}

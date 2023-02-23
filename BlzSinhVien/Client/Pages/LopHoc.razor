@@ -1,8 +1,9 @@
 ﻿@page "/lophoc"
 @using BlzSinhVien.Client.Pages.Dialog
 @inject ILopHocService LopHocService
+@inject INganhHocService NganhHocService
 @inject ISnackbar Snackbar
-@attribute [Authorize(Roles = "Admin")]
+@attribute [Authorize(Roles = "Admin,User")]
 
 
 <MudButton OnClick="@((e) => CreateLopHoc(lophoc))" Variant="Variant.Filled" Color="Color.Primary">
@@ -22,6 +23,11 @@
         <Column T="BLLopHoc" Field="Id" Title="STT" Filterable="false"/>
         <Column T="BLLopHoc" Field="MaLopHoc" Title="Mã Lớp Học"/>
         <Column T="BLLopHoc" Field="TenLopHoc" Title="Tên Lớp"/>
+        <Column T="BLLopHoc" Title="Tên Ngành Học">
+            <CellTemplate>
+                <MudText>@listnganhhoc.Where(i=>i.Id == context.Item.NganhHocId).Select(e=>e.TenNganh).FirstOrDefault()</MudText>
+            </CellTemplate>
+        </Column>
         <Column T="BLLopHoc" CellClass="d-flex justify-end" Title="Action" >
             <CellTemplate>
                 <MudIconButton Size="@Size.Small" Icon="@Icons.Outlined.Edit" OnClick="@((e) => UpdateLopHoc(@context.Item.Id))" 
@@ -40,6 +46,7 @@
 
 @code {
     private List<BLLopHoc> listlophoc = new List<BLLopHoc>();
+    private List<BLNganhHoc> listnganhhoc = new List<BLNganhHoc>();
     private BLLopHoc lophoc = new BLLopHoc();
     private string _searchString = string.Empty;
     private bool _sortNameByLength = true;
@@ -55,6 +62,8 @@
             Http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
             await LopHocService.GetLopHoc();
             listlophoc = LopHocService.Lophoc;
+            await NganhHocService.GetNganhHoc();
+            listnganhhoc = NganhHocService.ListNganhHoc;
         }
         else
             navManager.NavigateTo("/");

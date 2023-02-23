@@ -8,6 +8,7 @@ namespace BlzSinhVien.Server.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class SinhVienController : ControllerBase
     {
         private readonly ISinhVienService _service;
@@ -27,22 +28,34 @@ namespace BlzSinhVien.Server.Controllers
         [HttpGet("{Id}")]
         public async Task<ActionResult<BLSinhVien>> GetSVId(int Id)
         {
-            return Ok(await _service.GetId(Id));
+            var result = await _service.GetId(Id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
         }
-        [HttpPost]
-        public async Task<ActionResult<List<BLSinhVien>>> Create(BLSinhVien sinhvien)
+        [HttpPost("{Id}")]
+        public async Task<ActionResult<List<BLSinhVien>>> Create(BLSinhVien sinhvien, int Id)
         {
-            return await _service.Create(sinhvien);
+            var result = await _service.Create(sinhvien, Id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
         }
         [HttpPut("{Id}")]
         public async Task<ActionResult<List<BLSinhVien>>> Update(int Id,BLSinhVien sinhvien)
         {
-            return await _service.Update(Id,sinhvien);
+            var result = await _service.Update(Id, sinhvien);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
         }
         [HttpDelete("{Id}")]
         public async Task<ActionResult<List<BLSinhVien>>> Delete(int Id)
         {
-            return await _service.Delete(Id);
+            var result = await _service.Delete(Id);
+            if (result == null)
+                return NotFound();
+            return Ok(result);
         }
     }
 }
